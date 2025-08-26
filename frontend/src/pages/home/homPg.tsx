@@ -1,7 +1,7 @@
 
 const homPg = () => {
   return (
-    <div>homPg</div>
+    <div><Button>homPg</Button></div>
   )
 }
 
