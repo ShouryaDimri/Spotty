@@ -1,8 +1,8 @@
-
+import { Button } from "@/components/ui/button"
 
 const authCallbackPg = () => {
   return (
-    <div>authCallbackPg</div>
+    <div><Button>authCallbackPg</Button></div>
   )
 }
 
