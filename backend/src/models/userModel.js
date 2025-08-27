@@ -1,21 +1,23 @@
 import mongoose from "mongoose";
+console.log("✅ userModel loaded");
 
-const userSchema = new mongoose.Schema({
-    fullName: {
-        type : String,
-        required: true
-    },
-    imageUrl : {
-        type : String,
-        required : true,
-        unique : true
-    },
-    clerkId : {
-        type : String,
-        required : true,
-        unique : true
-    },
-}, { timestamps : true}
+const userSchema = new mongoose.Schema(
+	{
+		fullName: {
+			type: String,
+			required: true,
+		},
+		imageUrl: {
+			type: String,
+			required: true,
+		},
+		clerkId: {
+			type: String,
+			required: true,
+			unique: true,
+		},
+	},
+	{ timestamps: true } //  createdAt, updatedAt
 );
 
 export const User = mongoose.model("User", userSchema);

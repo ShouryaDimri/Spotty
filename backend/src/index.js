@@ -13,7 +13,6 @@ import authRoutes from './routes/authRoutes.js';
 import songRoutes from './routes/songRoutes.js';
 import albumRoutes from './routes/albumRoutes.js';
 import statRoutes from './routes/statRoutes.js';
-import { use } from 'react';
 
 
 
@@ -49,5 +48,5 @@ app.use("/api/statistics", statRoutes);
 
 app.listen(PORT, () => {
   console.log('Server is running on port:', PORT);
-  connectDB(process.env.MONGODB_URI);
+  connectDB();
 });
