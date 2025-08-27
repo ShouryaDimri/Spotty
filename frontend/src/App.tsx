@@ -1,9 +1,12 @@
 import { Route, Routes } from "react-router-dom"
 import AuthCallbackPg from "./pages/authCallback/authCallbackPg"
 import HomePg from "./pages/home/homPg"
+import { axiosInstance } from "./lib/axios"
+
 
 
 function App() {
+  // token=> auth 
 
   return (
     <>
