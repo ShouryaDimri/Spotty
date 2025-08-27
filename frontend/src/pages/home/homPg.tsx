@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button"
+import Topbar from "@/components/ui/topbar"
 const homPg = () => {
   return (
-    <div><Button>homPg</Button></div>
+    <div><Topbar /></div>
   )
 }
 

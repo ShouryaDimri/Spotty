@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { clerkMiddleware } from '@clerk/express'
 import fileupload from 'express-fileupload';
 import path from 'path';
+import cors from 'cors';
 
 import { connectDB } from './lib/db.js';  
 
@@ -22,6 +23,12 @@ const app = express();
 const PORT = process.env.PORT;
 const __dirname = path.resolve();
 
+
+app.use(cors({
+  origin: "http://localhost:5000",
+  credentials : true,
+
+}));
 app.use(express.json()); // to parse JSON bodies
 
 app.use(clerkMiddleware());
