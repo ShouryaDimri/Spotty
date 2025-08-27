@@ -1,6 +1,6 @@
-import Song from "../models/songModel.js";
-import User from "../models/userModel.js";
-import Album from "../models/albumModel.js";
+import {Song} from "../models/songModel.js";
+import {User} from "../models/userModel.js";
+import {Album} from "../models/albumModel.js";
 
 export const getStats = async(req, res) => {
     try {
