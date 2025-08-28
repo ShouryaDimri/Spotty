@@ -23,13 +23,11 @@ const PORT = process.env.PORT;
 const __dirname = path.resolve();
 
 
-app.use(
-	cors({
-		origin: "http://localhost:5000",
-		credentials: true,
-	})
-);
+app.use(cors({
+  origin: "http://localhost:5000",
+  credentials : true,
 
+}));
 app.use(express.json()); // to parse JSON bodies
 
 app.use(clerkMiddleware());
