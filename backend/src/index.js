@@ -19,14 +19,13 @@ import statRoutes from './routes/statRoutes.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5137;
 const __dirname = path.resolve();
 
 
 app.use(cors({
-  origin: "http://localhost:5000",
-  credentials : true,
-
+  origin: "http://localhost:5173", // Frontend typically runs on 5173 with Vite
+  credentials: true,
 }));
 app.use(express.json()); // to parse JSON bodies
 
@@ -39,12 +38,24 @@ limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 }));
 
 
+// Debug middleware to log all incoming requests
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} ${req.path}`);
+  next();
+});
+
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/songs", songRoutes);
 app.use("/api/albums", albumRoutes);
 app.use("/api/statistics", statRoutes);
+
+// Debug middleware for 404
+app.use((req, res, next) => {
+  console.log(`❌ 404: ${req.method} ${req.path}`);
+  res.status(404).send();
+});
 
 app.listen(PORT, () => {
   console.log('Server is running on port:', PORT);
