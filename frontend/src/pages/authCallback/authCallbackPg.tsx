@@ -17,7 +17,6 @@ const AuthCallbackPg = () => {
 
 			try {
 				syncAttempted.current = true;
-				console.log("Syncing user to backend", user);
 
 				await axiosInstance.post("/auth/callback", {
 					id: user.id,
