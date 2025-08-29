@@ -24,6 +24,7 @@ const AuthCallbackPg = () => {
 					lastName: user.lastName,
 					imageUrl: user.imageUrl,
 				});
+				syncAttempted.current = true;
 			} catch (error) {
 				console.log("Error in auth callback", error);
 			} finally {
