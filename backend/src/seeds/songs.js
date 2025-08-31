@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Song } from "../models/song.model.js";
+import { Song } from "../models/songModel.js";
 import { config } from "dotenv";
 
 config();

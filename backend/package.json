@@ -8,7 +8,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
+    "seed:songs" : "node src/seeds/songs.js",
+    "seed:albums" : "node src/seeds/albums.js"
   },
   "dependencies": {
     "@clerk/express": "^1.7.24",
