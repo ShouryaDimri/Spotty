@@ -23,12 +23,13 @@ function App() {
       <Route path = "/auth-callback" element = {<AuthCallbackPg />}></Route>
 
       <Route element={<MainLayout />}>
-      <Route path = "/" element = {<HomePg />}></Route>
-      <Route path = "/search" element = {<SearchPg />}></Route>
-      <Route path = "/chat" element = {<ChatPg />}></Route>
-      <Route path = "/admin" element = {<AdminPg />}></Route>
-      <Route path = "/albums/:albumId" element = {<AlbumPg />}></Route>
-
+        <Route path = "/" element = {<HomePg />}></Route>
+        <Route path = "/search" element = {<SearchPg />}></Route>
+        <Route path = "/chat" element = {<ChatPg />}></Route>
+        <Route path = "/admin" element = {<AdminPg />}></Route>
+        <Route path = "/albums/:albumId" element = {<AlbumPg />}></Route>
+        {/* Catch-all route for 404s */}
+        <Route path="*" element={<HomePg />} />
       </Route>
     </Routes>
     </>
