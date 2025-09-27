@@ -25,17 +25,20 @@ const app = express();
 const PORT = process.env.PORT || 5137;
 const __dirname = path.resolve();
 
+// Frontend URL for CORS - support both local and production
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: [FRONTEND_URL, "http://localhost:5173", "https://spotty-git-master-shouryadimris-projects.vercel.app"],
     credentials: true
   }
 });
 
 
 app.use(cors({
-  origin: "http://localhost:5173", // Frontend typically runs on 5173 with Vite
+  origin: [FRONTEND_URL, "http://localhost:5173", "https://spotty-git-master-shouryadimris-projects.vercel.app"],
   credentials: true,
 }));
 app.use(express.json()); // to parse JSON bodies
