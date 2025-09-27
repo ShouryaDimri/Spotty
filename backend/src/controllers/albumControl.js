@@ -24,3 +24,25 @@ export const getAlbumById = async(req, res) => {
     }
 
 };
+
+export const searchAlbums = async(req, res) => {
+    try {
+        const { q } = req.query;
+        
+        if (!q) {
+            return res.status(400).json({ message: "Query parameter is required" });
+        }
+
+        const albums = await Album.find({
+            $or: [
+                { title: { $regex: q, $options: 'i' } },
+                { artist: { $regex: q, $options: 'i' } }
+            ]
+        }).limit(20);
+
+        res.status(200).json(albums);
+    } catch (error) {
+        console.error("Error searching albums:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};

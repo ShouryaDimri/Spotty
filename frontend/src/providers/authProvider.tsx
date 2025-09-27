@@ -2,6 +2,7 @@ import { axiosInstance } from "@/lib/axios";
 import { useAuth } from "@clerk/clerk-react";
 import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
+import { usePlayerStore } from "@/stores/usePlayerStore";
 
 const updateApiToken = (token: string | null) => {
 	if (token) axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -9,16 +10,20 @@ const updateApiToken = (token: string | null) => {
 };
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-	const { getToken } = useAuth();
+	const { getToken, userId } = useAuth();
 	const [loading, setLoading] = useState(true);
+	const { setUserId } = usePlayerStore();
 
 	useEffect(() => {
 		const initAuth = async () => {
 			try {
 				const token = await getToken();
 				updateApiToken(token);
+				// Set user ID in player store for song sharing
+				setUserId(userId || null);
 			} catch (error: any) {
 				updateApiToken(null);
+				setUserId(null);
 				console.log("Error in auth provider", error);
 			} finally {
 				setLoading(false);
@@ -27,7 +32,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 		initAuth();
 
-	}, [getToken]);
+	}, [getToken, userId, setUserId]);
 
 	if (loading) {
         return (

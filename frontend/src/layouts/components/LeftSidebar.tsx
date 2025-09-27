@@ -4,12 +4,13 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { useMusicStore } from "@/stores/useMusicStore"
 import { SignedIn } from "@clerk/clerk-react"
-import { HomeIcon, Library, MessageCircle } from "lucide-react"
+import { HomeIcon, Library, MessageCircle, Search } from "lucide-react"
 import { useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 
 export const LeftSidebar = () => {
     const {albums, fetchAlbums, isLoading} = useMusicStore();
+    const location = useLocation();
 
     useEffect(() => {
         fetchAlbums();
@@ -25,12 +26,17 @@ export const LeftSidebar = () => {
     <div className=" h-full flex flex-col gap-2">
         <div className="rounded-lg bg-zinc-900 p-4">
             <div className="space-y-2">
-                <Link to = "/" className={cn(buttonVariants({variant: "ghost"}), "w-full justify-start text-white hover:bg-zinc-800")}>
+                <Link to = "/" className={cn(buttonVariants({variant: "ghost"}), "w-full justify-start text-white hover:bg-zinc-800", location.pathname === "/" && "bg-zinc-800")}>
                 <HomeIcon className="mr-2 size-5"/> 
                 <span className="hidden md:inline">Home</span>
                 </Link>
+                
+                <Link to = "/search" className={cn(buttonVariants({variant: "ghost"}), "w-full justify-start text-white hover:bg-zinc-800", location.pathname === "/search" && "bg-zinc-800")}>
+                <Search className="mr-2 size-5"/> 
+                <span className="hidden md:inline">Search</span>
+                </Link>
                 <SignedIn>
-                    <Link to = "/chat" className={cn(buttonVariants({variant: "ghost"}), "w-full justify-start text-white hover:bg-zinc-800")}>
+                    <Link to = "/chat" className={cn(buttonVariants({variant: "ghost"}), "w-full justify-start text-white hover:bg-zinc-800", location.pathname === "/chat" && "bg-zinc-800")}>
                     <MessageCircle className="mr-2 size-5"/> 
                     <span className="hidden md:inline">Messages</span>
                 </Link>

@@ -6,6 +6,7 @@ interface PlayerStore {
 	isPlaying: boolean;
 	queue: Song[];
 	currentIndex: number;
+	currentUserId: string | null;
 
 	initializeQueue: (songs: Song[]) => void;
 	playAlbum: (songs: Song[], startIndex?: number) => void;
@@ -13,6 +14,7 @@ interface PlayerStore {
 	togglePlay: () => void;
 	playNext: () => void;
 	playPrevious: () => void;
+	setUserId: (userId: string | null) => void;
 }
 
 export const usePlayerStore = create<PlayerStore>((set, get) => ({
@@ -20,6 +22,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 	isPlaying: false,
 	queue: [],
 	currentIndex: -1,
+	currentUserId: null,
 
 	initializeQueue: (songs: Song[]) => {
 		set({
@@ -29,12 +32,30 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 		});
 	},
 
-	playAlbum: (songs: Song[], startIndex = 0) => {
+	playAlbum: async (songs: Song[], startIndex = 0) => {
 		if (songs.length === 0) return;
 
 		const song = songs[startIndex];
 
-
+		// Share current song if user is set
+		const userId = get().currentUserId;
+		if (userId) {
+			try {
+				const { io } = await import("socket.io-client");
+				const socket = io("http://localhost:5137");
+				socket.emit('user_song_update', {
+					userId,
+					song: {
+						title: song.title,
+						artist: song.artist,
+						imageUrl: song.imageUrl
+					}
+				});
+				socket.disconnect();
+			} catch (error) {
+				console.log('Error sharing song status:', error);
+			}
+		}
 
 		set({
 			queue: songs,
@@ -44,10 +65,28 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 		});
 	},
 
-	setCurrentSong: (song: Song | null) => {
+	setCurrentSong: async (song: Song | null) => {
 		if (!song) return;
 
-
+		// Share current song if user is set
+		const userId = get().currentUserId;
+		if (userId) {
+			try {
+				const { io } = await import("socket.io-client");
+				const socket = io("http://localhost:5137");
+				socket.emit('user_song_update', {
+					userId,
+					song: {
+						title: song.title,
+						artist: song.artist,
+						imageUrl: song.imageUrl
+					}
+				});
+				socket.disconnect();
+			} catch (error) {
+				console.log('Error sharing song status:', error);
+			}
+		}
 
 		const songIndex = get().queue.findIndex((s) => s._id === song._id);
 		set({
@@ -59,10 +98,6 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 
 	togglePlay: () => {
 		const willStartPlaying = !get().isPlaying;
-
-		//const currentSong = get().currentSong;
-
-
 		set({
 			isPlaying: willStartPlaying,
 		});
@@ -72,42 +107,35 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 		const { currentIndex, queue } = get();
 		const nextIndex = currentIndex + 1;
 
-		// if there is a next song to play, let's play it
 		if (nextIndex < queue.length) {
 			const nextSong = queue[nextIndex];
-
-
 			set({
 				currentSong: nextSong,
 				currentIndex: nextIndex,
 				isPlaying: true,
 			});
 		} else {
-			// no next song
 			set({ isPlaying: false });
-
-
 		}
 	},
+
 	playPrevious: () => {
 		const { currentIndex, queue } = get();
 		const prevIndex = currentIndex - 1;
 
-		// theres a prev song
 		if (prevIndex >= 0) {
 			const prevSong = queue[prevIndex];
-
-
-
 			set({
 				currentSong: prevSong,
 				currentIndex: prevIndex,
 				isPlaying: true,
 			});
 		} else {
-			// no prev song
 			set({ isPlaying: false });
-
 		}
+	},
+
+	setUserId: (userId: string | null) => {
+		set({ currentUserId: userId });
 	},
 }));

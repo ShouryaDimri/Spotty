@@ -10,16 +10,14 @@ export const getStats = async(req, res) => {
             Album.countDocuments(),
 
             Song.aggregate([
-                { $unionwith: {
-                    coll: "songs",
-                    pipeline: [],
+                {
+                    $group: {
+                        _id: "$artist"
+                    }
                 },
-            },
-                { $group: {
-                    _id: "$artist",
-                },
-            },
-                { $count: "count" },
+                {
+                    $count: "count"
+                }
             ]),
         ]);
         res.status(200).json({ totalSongs, totalUsers, totalAlbums,  totalArtists: uniqueArtists[0]?.count || 0 });

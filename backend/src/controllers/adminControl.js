@@ -24,20 +24,20 @@ export const createSong = async (req, res) => {
     const audioFile = req.files.audioFile;
     const imageFile = req.files.imageFile;
 
-    const audioUrl = await uploadToCloudinary(audioFile, 'audio_files');
-    const imageUrl = await uploadToCloudinary(imageFile, 'image_files');
+    const audioUrl = await uploadToCloudinary(audioFile);
+    const imageUrl = await uploadToCloudinary(imageFile);
     const song = new Song({
         title,
         artist,
         audioUrl,
         imageUrl,
-        album: albumId || null,
+        albumId: albumId || null,
         duration,
     });
     await song.save()
 
     if(albumId){
-        await Album.findByIdandUpdate(albumId, {
+        await Album.findByIdAndUpdate(albumId, {
             $push: {songs: song._id},
         });
     }
@@ -55,22 +55,27 @@ export const deleteSong = async (req, res) => {
         const song = await Song.findById(id);
 
         if (song.albumId){
-            $pull: { songs: song._id }
+            await Album.findByIdAndUpdate(song.albumId, {
+                $pull: { songs: song._id }
+            });
         }
         await Song.findByIdAndDelete(id);
         res.status(200).json({ message: "Song deleted successfully" });
     
-        
 } catch (error) {
         console.error("Error deleting song:", error);
         res.status(500).json({ message: "Server error" });
-    };
+    }
 };
 
 export const createAlbum = async (req, res) => {
     try {
         const {title, artist, releaseYear} = req.body;
-        const imageFile = req.files
+        const {imageFile} = req.files;
+        
+        if (!imageFile) {
+            return res.status(400).json({ message: "Image file is required" });
+        }
 
         const imageUrl = await uploadToCloudinary(imageFile);
 
@@ -91,7 +96,7 @@ export const createAlbum = async (req, res) => {
 export const deleteAlbum = async (req, res) => {
     try {
         const { id } = req.params;
-        await Song.deleteMany({ album: id });
+        await Song.deleteMany({ albumId: id });
         await Album.findByIdAndDelete(id);
         res.status(200).json({ message: "Album and associated songs deleted successfully" });
     } catch (error) {
