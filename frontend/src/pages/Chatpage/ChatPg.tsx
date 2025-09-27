@@ -34,6 +34,7 @@ const ChatPg = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -170,14 +171,29 @@ const ChatPg = () => {
   }
 
   return (
-    <div className="h-full flex chat-container" style={{ height: 'calc(100vh - 120px)' }}>
+    <div className="h-full flex chat-container" style={{ height: 'calc(100vh - 80px)' }}>
       {/* Users List */}
-      <div className="w-1/3 border-r border-zinc-800 bg-zinc-900">
-        <div className="p-4 border-b border-zinc-800">
-          <h2 className="text-lg font-semibold text-white">Messages</h2>
+      <div 
+        className={`border-r border-zinc-800 bg-zinc-900 transition-all duration-300 ease-in-out overflow-hidden h-full ${
+          isHovered ? 'w-80' : 'w-16'
+        }`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="p-4 border-b border-zinc-800 flex items-center justify-center flex-shrink-0">
+          <h2 className={`text-lg font-semibold text-white transition-opacity duration-300 ${
+            isHovered ? 'opacity-100' : 'opacity-0'
+          }`}>
+            {isHovered ? 'Messages' : ''}
+          </h2>
+          {!isHovered && (
+            <div className="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center">
+              <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+            </div>
+          )}
         </div>
         
-        <ScrollArea className="h-[calc(100vh-240px)]">
+        <ScrollArea className="h-[calc(100vh-160px)]">
           <div className="space-y-2 p-2">
             {users.map((chatUser) => (
               <div
@@ -192,9 +208,11 @@ const ChatPg = () => {
                 <img
                   src={chatUser.imageUrl}
                   alt={chatUser.fullName}
-                  className="w-10 h-10 rounded-full object-cover"
+                  className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                 />
-                <div className="flex-1 min-w-0">
+                <div className={`flex-1 min-w-0 transition-opacity duration-300 ${
+                  isHovered ? 'opacity-100' : 'opacity-0'
+                }`}>
                   <p className="text-white font-medium truncate">{chatUser.fullName}</p>
                   <p className="text-zinc-400 text-sm">Click to chat</p>
                 </div>
@@ -205,11 +223,11 @@ const ChatPg = () => {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col" style={{ height: 'calc(100vh - 120px)' }}>
+      <div className="flex-1 flex flex-col h-full">
         {selectedUser ? (
           <>
             {/* Chat Header */}
-            <div className="p-4 border-b border-zinc-800 bg-zinc-900">
+            <div className="p-4 border-b border-zinc-800 bg-zinc-900 flex-shrink-0">
               <div className="flex items-center gap-3">
                 <img
                   src={selectedUser.imageUrl}
@@ -221,7 +239,7 @@ const ChatPg = () => {
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4" style={{ height: 'calc(100vh - 200px)' }}>
+            <ScrollArea className="flex-1 p-4" style={{ height: 'calc(100vh - 240px)' }}>
               <div className="space-y-4">
                 {messages.map((message) => {
                   const isMyMessage = message.senderId === user?.id;

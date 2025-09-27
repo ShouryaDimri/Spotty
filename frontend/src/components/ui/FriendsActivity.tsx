@@ -213,10 +213,10 @@ const FriendsActivity = () => {
                       You
                     </span>
                   </div>
-                  <p className="text-green-400 text-sm font-medium flex items-center gap-1">
+                  <div className="text-green-400 text-sm font-medium flex items-center gap-1">
                     <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
                     Online
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -271,9 +271,9 @@ const FriendsActivity = () => {
                           <div className="w-1.5 h-1.5 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-green-400 text-sm font-medium truncate">
+                          <div className="text-green-400 text-sm font-medium truncate">
                             {userStatus.currentSong?.title}
-                          </p>
+                          </div>
                           <p className="text-zinc-400 text-xs truncate">
                             by {userStatus.currentSong?.artist}
                           </p>
