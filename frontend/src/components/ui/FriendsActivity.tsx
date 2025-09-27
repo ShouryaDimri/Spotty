@@ -32,7 +32,8 @@ const FriendsActivity = () => {
 
   useEffect(() => {
     // Initialize socket connection for status updates
-    const newSocket = io("http://localhost:5137");
+    const SOCKET_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || "http://localhost:5137";
+    const newSocket = io(SOCKET_URL);
     setSocket(newSocket);
 
     if (user?.id) {
