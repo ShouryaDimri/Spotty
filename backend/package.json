@@ -11,14 +11,15 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "build": "node build-frontend.js",
-    "seed:songs" : "node src/seeds/songs.js",
-    "seed:albums" : "node src/seeds/albums.js"
+    "seed:songs": "node src/seeds/songs.js",
+    "seed:albums": "node src/seeds/albums.js"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "dependencies": {
     "@clerk/express": "^1.7.24",
+    "@vercel/node": "^3.2.29",
     "cloudinary": "^2.7.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",

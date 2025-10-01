@@ -161,9 +161,8 @@ app.use((req, res, next) => {
   });
 });
 
-// Export for Vercel serverless functions
-export default app;
-export { app as handler };
+// Create handler for Vercel serverless functions
+let handler = app; // Default to express app
 
 // Only start server if not in serverless environment
 // In serverless environment, Vercel will handle the server creation
@@ -177,3 +176,6 @@ if (!process.env.NOW_REGION) {
     console.error('Failed to start server:', error);
   });
 }
+
+// Export for Vercel serverless functions
+export default handler;

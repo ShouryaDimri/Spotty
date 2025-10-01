@@ -2,23 +2,23 @@
   "version": 2,
   "builds": [
     {
-      "src": "src/index.js",
+      "src": "api/index.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/.*",
-      "dest": "src/index.js",
+      "dest": "api/index.js",
       "methods": ["GET", "POST", "PUT", "DELETE", "PATCH"]
     },
     {
       "src": "/socket.io/.*",
-      "dest": "src/index.js"
+      "dest": "api/index.js"
     },
     {
       "src": "/(.*)",
-      "dest": "src/index.js"
+      "dest": "api/index.js"
     }
   ]
 }
