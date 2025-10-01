@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Loader, Paperclip, X, Download, Image, FileText, Music, Video } from "lucide-react";
 import { io, Socket } from "socket.io-client";
-import { usePlayerStore } from "@/stores/usePlayerStore";
 
 interface User {
   _id: string;
@@ -27,7 +26,6 @@ interface Message {
 
 const ChatPg = () => {
   const { user } = useUser();
-  const { currentSong } = usePlayerStore();
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -174,7 +172,7 @@ const ChatPg = () => {
   }
 
   return (
-    <div className="h-full flex chat-container">
+    <div className="h-full flex chat-container" style={{ height: 'calc(100vh - 80px)' }}>
       {/* Users List */}
       <div 
         className={`border-r border-zinc-800 bg-zinc-900 transition-all duration-300 ease-in-out overflow-hidden h-full ${
@@ -242,12 +240,7 @@ const ChatPg = () => {
             </div>
 
             {/* Messages */}
-            <ScrollArea 
-              className="flex-1 p-4 transition-all duration-300" 
-              style={{ 
-                height: currentSong ? 'calc(100vh - 340px)' : 'calc(100vh - 240px)' 
-              }}
-            >
+            <ScrollArea className="flex-1 p-4" style={{ height: 'calc(100vh - 240px)' }}>
               <div className="space-y-4">
                 {messages.map((message) => {
                   const isMyMessage = message.senderId === user?.id;
