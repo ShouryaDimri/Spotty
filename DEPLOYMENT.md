@@ -28,7 +28,7 @@ Go to your Vercel project dashboard and add these environment variables:
 | `CLOUDINARY_CLOUD_NAME` | Your Cloudinary cloud name | `your_cloud_name` |
 | `CLOUDINARY_API_KEY` | Your Cloudinary API key | `your_api_key` |
 | `CLOUDINARY_API_SECRET` | Your Cloudinary API secret | `your_api_secret` |
-| `FRONTEND_URL` | Your frontend deployment URL | `https://your-app.vercel.app` |
+| `FRONTEND_URL` | Your frontend deployment URL | `https://spotty-kohl.vercel.app` |
 | `ADMIN_EMAIL` | Admin user email | `admin@example.com` |
 
 ### 3. Configure CORS Origins (Optional)
@@ -42,7 +42,7 @@ Go to your frontend Vercel project dashboard and add these environment variables
 | Variable | Description | Example Value |
 |----------|-------------|---------------|
 | `VITE_CLERK_PUBLISHABLE_KEY` | Your Clerk publishable key | `pk_test_...` |
-| `VITE_API_BASE_URL` | Your backend API URL | `https://your-backend.vercel.app/api` |
+| `VITE_API_BASE_URL` | Your backend API URL | `/api` (relative path) |
 
 ### 2. Redeploy Frontend
 After setting environment variables, redeploy your frontend for changes to take effect.
@@ -66,7 +66,7 @@ If you need full Socket.io functionality (real-time chat), consider deploying th
 
 ## 🧪 Testing Your Deployment
 
-1. Visit your frontend URL
+1. Visit your frontend URL: https://spotty-kohl.vercel.app
 2. Try signing in with Clerk
 3. Test music playback functionality
 4. Verify admin functionality (if using admin email)
@@ -81,7 +81,7 @@ If you need full Socket.io functionality (real-time chat), consider deploying th
    - Check that the frontend URL matches exactly
 
 2. **API Connection Failed**:
-   - Verify `VITE_API_BASE_URL` is set correctly in frontend
+   - Verify `VITE_API_BASE_URL` is set correctly in frontend (should be `/api` for Vercel)
    - Ensure backend is deployed and running
 
 3. **Authentication Not Working**:

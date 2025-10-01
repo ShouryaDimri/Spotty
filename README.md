@@ -61,6 +61,7 @@ CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
 CLOUDINARY_API_KEY=your_cloudinary_api_key
 CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 PORT=5137
+FRONTEND_URL=https://spotty-kohl.vercel.app
 ```
 
 ### 3. Frontend Setup
@@ -72,7 +73,7 @@ npm install
 Create a `.env` file in the frontend directory (see [.env.example](frontend/.env.example)):
 ```env
 VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-VITE_API_BASE_URL=http://localhost:5137/api
+VITE_API_BASE_URL=/api
 ```
 
 ### 4. Database Seeding (Optional)
@@ -202,6 +203,7 @@ This project is configured for direct deployment to Vercel:
    - Connect your GitHub repository to Vercel
    - Set environment variables as described in [DEPLOYMENT.md](DEPLOYMENT.md)
    - Deploy!
+   - Your app will be available at: https://spotty-kohl.vercel.app
 
 2. **Backend Deployment:**
    - Connect your GitHub repository to Vercel
