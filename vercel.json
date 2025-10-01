@@ -5,7 +5,7 @@
   },
   "builds": [
     {
-      "src": "backend/src/index.js",
+      "src": "backend/api/index.js",
       "use": "@vercel/node",
       "config": {
         "includeFiles": [
@@ -18,16 +18,16 @@
   "routes": [
     {
       "src": "/api/.*",
-      "dest": "backend/src/index.js",
+      "dest": "backend/api/index.js",
       "methods": ["GET", "POST", "PUT", "DELETE", "PATCH"]
     },
     {
       "src": "/socket.io/.*",
-      "dest": "backend/src/index.js"
+      "dest": "backend/api/index.js"
     },
     {
       "src": "/(.*)",
-      "dest": "backend/src/index.js"
+      "dest": "backend/api/index.js"
     }
   ],
   "env": {
