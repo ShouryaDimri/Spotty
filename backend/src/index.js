@@ -52,12 +52,27 @@ if (process.env.NOW_REGION) {
 }
 
 app.use(cors({
-  origin: [
-    FRONTEND_URL, 
-    "http://localhost:5173", 
-    "https://spotty-git-master-shouryadimris-projects.vercel.app",
-    "https://spotty-kohl.vercel.app"
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost and all Vercel preview/production deployments
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:5137'
+    ];
+    
+    // Allow all Vercel domains
+    if (origin.includes('.vercel.app')) {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    callback(null, true); // Allow all for now to fix deployment
+  },
   credentials: true,
 }));
 app.use(express.json()); // to parse JSON bodies
