@@ -31,87 +31,89 @@ const FriendsActivity = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    // Initialize socket connection for status updates
-    const SOCKET_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || "http://localhost:5137";
-    const newSocket = io(SOCKET_URL);
-    setSocket(newSocket);
+    // Only initialize socket in development (Socket.io not available in Vercel serverless)
+    if (import.meta.env.DEV) {
+      const SOCKET_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || "http://localhost:5137";
+      const newSocket = io(SOCKET_URL);
+      setSocket(newSocket);
 
-    if (user?.id) {
-      newSocket.emit("join_room", user.id);
-      // Set current user as online
-      newSocket.emit("user_status", { userId: user.id, status: 'online' });
-    }
-
-    // Listen for current song updates
-    newSocket.on("user_song_update", (data: { userId: string; song: any }) => {
-      setOnlineUsers(prev => {
-        const updated = new Map(prev);
-        if (updated.has(data.userId)) {
-          updated.set(data.userId, {
-            ...updated.get(data.userId)!,
-            currentSong: data.song
-          });
-        }
-        return updated;
-      });
-    });
-
-    // Listen for user status updates
-    newSocket.on("user_status_update", (data: OnlineUser) => {
-      setOnlineUsers(prev => new Map(prev.set(data.userId, data)));
-    });
-
-    // Listen for users list updates
-    newSocket.on("online_users", (users: OnlineUser[]) => {
-      const usersMap = new Map();
-      users.forEach(user => usersMap.set(user.userId, user));
-      setOnlineUsers(usersMap);
-    });
-
-    // Handle user disconnect
-    newSocket.on("user_disconnected", (userId: string) => {
-      setOnlineUsers(prev => {
-        const updated = new Map(prev);
-        if (updated.has(userId)) {
-          updated.set(userId, { 
-            ...updated.get(userId)!, 
-            status: 'offline',
-            lastSeen: new Date()
-          });
-        }
-        return updated;
-      });
-    });
-
-    // Set idle status when user is inactive
-    let idleTimer: NodeJS.Timeout;
-    const resetIdleTimer = () => {
-      clearTimeout(idleTimer);
       if (user?.id) {
+        newSocket.emit("join_room", user.id);
+        // Set current user as online
         newSocket.emit("user_status", { userId: user.id, status: 'online' });
       }
-      idleTimer = setTimeout(() => {
-        if (user?.id) {
-          newSocket.emit("user_status", { userId: user.id, status: 'idle' });
-        }
-      }, 5 * 60 * 1000); // 5 minutes
-    };
 
-    // Track user activity
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
-    events.forEach(event => {
-      document.addEventListener(event, resetIdleTimer, true);
-    });
-
-    resetIdleTimer();
-
-    return () => {
-      clearTimeout(idleTimer);
-      events.forEach(event => {
-        document.removeEventListener(event, resetIdleTimer, true);
+      // Listen for current song updates
+      newSocket.on("user_song_update", (data: { userId: string; song: any }) => {
+        setOnlineUsers(prev => {
+          const updated = new Map(prev);
+          if (updated.has(data.userId)) {
+            updated.set(data.userId, {
+              ...updated.get(data.userId)!,
+              currentSong: data.song
+            });
+          }
+          return updated;
+        });
       });
-      newSocket.close();
-    };
+
+      // Listen for user status updates
+      newSocket.on("user_status_update", (data: OnlineUser) => {
+        setOnlineUsers(prev => new Map(prev.set(data.userId, data)));
+      });
+
+      // Listen for users list updates
+      newSocket.on("online_users", (users: OnlineUser[]) => {
+        const usersMap = new Map();
+        users.forEach(user => usersMap.set(user.userId, user));
+        setOnlineUsers(usersMap);
+      });
+
+      // Handle user disconnect
+      newSocket.on("user_disconnected", (userId: string) => {
+        setOnlineUsers(prev => {
+          const updated = new Map(prev);
+          if (updated.has(userId)) {
+            updated.set(userId, { 
+              ...updated.get(userId)!, 
+              status: 'offline',
+              lastSeen: new Date()
+            });
+          }
+          return updated;
+        });
+      });
+
+      // Set idle status when user is inactive
+      let idleTimer: NodeJS.Timeout;
+      const resetIdleTimer = () => {
+        clearTimeout(idleTimer);
+        if (user?.id) {
+          newSocket.emit("user_status", { userId: user.id, status: 'online' });
+        }
+        idleTimer = setTimeout(() => {
+          if (user?.id) {
+            newSocket.emit("user_status", { userId: user.id, status: 'idle' });
+          }
+        }, 5 * 60 * 1000); // 5 minutes
+      };
+
+      // Track user activity
+      const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+      events.forEach(event => {
+        document.addEventListener(event, resetIdleTimer, true);
+      });
+
+      resetIdleTimer();
+
+      return () => {
+        clearTimeout(idleTimer);
+        events.forEach(event => {
+          document.removeEventListener(event, resetIdleTimer, true);
+        });
+        newSocket.close();
+      };
+    }
   }, [user?.id]);
 
   useEffect(() => {

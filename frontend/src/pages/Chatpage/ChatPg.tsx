@@ -38,23 +38,25 @@ const ChatPg = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Initialize socket connection
-    const SOCKET_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || "http://localhost:5137";
-    const newSocket = io(SOCKET_URL);
-    setSocket(newSocket);
+    // Only initialize socket in development (Socket.io not available in Vercel serverless)
+    if (import.meta.env.DEV) {
+      const SOCKET_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || "http://localhost:5137";
+      const newSocket = io(SOCKET_URL);
+      setSocket(newSocket);
 
-    if (user?.id) {
-      newSocket.emit("join_room", user.id);
+      if (user?.id) {
+        newSocket.emit("join_room", user.id);
+      }
+
+      // Listen for incoming messages
+      newSocket.on("receive_message", (message: Message) => {
+        setMessages(prev => [...prev, message]);
+      });
+
+      return () => {
+        newSocket.close();
+      };
     }
-
-    // Listen for incoming messages
-    newSocket.on("receive_message", (message: Message) => {
-      setMessages(prev => [...prev, message]);
-    });
-
-    return () => {
-      newSocket.close();
-    };
   }, [user?.id]);
 
   useEffect(() => {
