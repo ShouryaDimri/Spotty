@@ -27,9 +27,9 @@ const AdminPg = () => {
 	const fetchAdminData = async () => {
 		try {
 			const [statsRes, songsRes, albumsRes] = await Promise.all([
-				axiosInstance.get<Stats>("/statistics"),
-				axiosInstance.get<Song[]>("/songs"),
-				axiosInstance.get<Album[]>("/albums")
+				axiosInstance.get("/statistics"),
+				axiosInstance.get("/songs"),
+				axiosInstance.get("/albums")
 			]);
 
 			setStats(statsRes.data);

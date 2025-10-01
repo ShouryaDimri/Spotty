@@ -25,11 +25,11 @@ export const useMusicStore = create<MusicStore>((set) => ({
         set({
             isLoading: true, error:null
         })
-		try {
-			const response = await axiosInstance.get<Album[]>("/albums")
-			set({
-				albums: response.data
-			})
+        try {
+            const response = await axiosInstance.get("albums")
+            set({
+                albums: response.data
+            })
         } catch (error: any) {
             set({
                 error : error.response?.data?.message || error.message || 'Failed to fetch albums'
@@ -44,11 +44,11 @@ export const useMusicStore = create<MusicStore>((set) => ({
         set({
             isLoading: true, error:null
         })
-		try {
-			const response = await axiosInstance.get<Album>(`/albums/${id}`)
-			set({
-				currAlbum: response.data
-			})
+        try {
+            const response = await axiosInstance.get(`albums/${id}`)
+            set({
+                currAlbum: response.data
+            })
         } catch (error: any) {
             set({
                 error : error.response?.data?.message || error.message || 'Failed to fetch albums'
