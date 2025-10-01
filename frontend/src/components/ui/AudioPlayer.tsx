@@ -131,7 +131,17 @@ const AudioPlayer = () => {
 		setIsLiked(!isLiked);
 	};
 
-	if (!currentSong) return null;
+	// Create dummy song for when no song is selected
+	const dummySong = {
+		_id: 'dummy',
+		title: 'No song selected',
+		artist: 'Choose a song to play',
+		imageUrl: '/cover-images/1.jpg',
+		audioUrl: '',
+		duration: 0
+	};
+
+	const displaySong = currentSong || dummySong;
 
 	return (
 		<div className="audio-player fixed bottom-0 left-0 right-0 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 border-t border-zinc-700/50 backdrop-blur-md">
@@ -149,8 +159,8 @@ const AudioPlayer = () => {
 					<div className="relative group">
 						<div className="absolute -inset-0.5 bg-gradient-to-r from-green-400 to-emerald-400 rounded-lg opacity-75 blur-sm group-hover:opacity-100 transition-opacity" />
 						<img
-							src={currentSong.imageUrl || '/cover-images/1.jpg'}
-							alt={currentSong.title}
+							src={displaySong.imageUrl || '/cover-images/1.jpg'}
+							alt={displaySong.title}
 							className="relative w-16 h-16 rounded-lg object-cover shadow-lg"
 							onError={(e) => {
 								e.currentTarget.src = '/cover-images/1.jpg';
@@ -158,8 +168,8 @@ const AudioPlayer = () => {
 						/>
 					</div>
 					<div className="min-w-0 flex-1">
-						<h4 className="font-semibold text-white truncate text-lg">{currentSong.title}</h4>
-						<p className="text-zinc-400 truncate font-medium">{currentSong.artist}</p>
+						<h4 className="font-semibold text-white truncate text-lg">{displaySong.title}</h4>
+						<p className="text-zinc-400 truncate font-medium">{displaySong.artist}</p>
 					</div>
 					<Button
 						variant="ghost"
@@ -206,7 +216,12 @@ const AudioPlayer = () => {
 								size="icon"
 								variant="ghost"
 								onClick={playPrevious}
-								className="relative text-zinc-400 hover:text-white hover:bg-zinc-700/30 transition-all duration-300 hover:scale-110 rounded-full"
+								disabled={!currentSong}
+								className={`relative transition-all duration-300 hover:scale-110 rounded-full ${
+									currentSong 
+										? 'text-zinc-400 hover:text-white hover:bg-zinc-700/30' 
+										: 'text-zinc-600 cursor-not-allowed'
+								}`}
 							>
 								<SkipBack className="h-5 w-5" />
 							</Button>
@@ -225,7 +240,12 @@ const AudioPlayer = () => {
 							<Button
 								size="icon"
 								onClick={togglePlay}
-								className="relative bg-gradient-to-r from-green-500 to-emerald-500 text-black hover:from-green-400 hover:to-emerald-400 w-14 h-14 shadow-2xl hover:scale-110 transition-all duration-300 rounded-full border-2 border-white/10"
+								disabled={!currentSong}
+								className={`relative w-14 h-14 shadow-2xl hover:scale-110 transition-all duration-300 rounded-full border-2 border-white/10 ${
+									currentSong 
+										? 'bg-gradient-to-r from-green-500 to-emerald-500 text-black hover:from-green-400 hover:to-emerald-400' 
+										: 'bg-zinc-700/50 text-zinc-500 cursor-not-allowed'
+								}`}
 							>
 								{isPlaying ? (
 									<Pause className="h-7 w-7" />
@@ -242,7 +262,12 @@ const AudioPlayer = () => {
 								size="icon"
 								variant="ghost"
 								onClick={playNext}
-								className="relative text-zinc-400 hover:text-white hover:bg-zinc-700/30 transition-all duration-300 hover:scale-110 rounded-full"
+								disabled={!currentSong}
+								className={`relative transition-all duration-300 hover:scale-110 rounded-full ${
+									currentSong 
+										? 'text-zinc-400 hover:text-white hover:bg-zinc-700/30' 
+										: 'text-zinc-600 cursor-not-allowed'
+								}`}
 							>
 								<SkipForward className="h-5 w-5" />
 							</Button>
@@ -278,33 +303,45 @@ const AudioPlayer = () => {
 					{/* Enhanced Progress Bar */}
 					<div className="flex items-center gap-4 w-full max-w-2xl">
 						<span className="text-sm text-zinc-300 w-14 text-right font-mono tracking-wide">
-							{formatTime(currentTime)}
+							{currentSong ? formatTime(currentTime) : '0:00'}
 						</span>
 						
 						<div className="relative flex-1 group">
 							{/* Background glow */}
 							<div className="absolute -inset-1 bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300" />
 							<div
-								className="relative h-3 bg-gradient-to-r from-zinc-700 to-zinc-600 rounded-full cursor-pointer overflow-hidden shadow-inner backdrop-blur-sm border border-zinc-600/50"
-								onClick={handleSeek}
+								className={`relative h-3 rounded-full overflow-hidden shadow-inner backdrop-blur-sm border border-zinc-600/50 ${
+									currentSong 
+										? 'bg-gradient-to-r from-zinc-700 to-zinc-600 cursor-pointer' 
+										: 'bg-zinc-800 cursor-not-allowed'
+								}`}
+								onClick={currentSong ? handleSeek : undefined}
 							>
 								{/* Progress fill with enhanced styling */}
 								<div
-									className="h-full bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 rounded-full relative transition-all duration-200 shadow-lg"
+									className={`h-full rounded-full relative transition-all duration-200 shadow-lg ${
+										currentSong 
+											? 'bg-gradient-to-r from-green-400 via-emerald-400 to-green-500' 
+											: 'bg-zinc-700'
+									}`}
 									style={{ 
-										width: `${duration && isFinite(duration) && duration > 0 ? Math.min(100, Math.max(0, (currentTime / duration) * 100)) : 0}%` 
+										width: `${currentSong && duration && isFinite(duration) && duration > 0 ? Math.min(100, Math.max(0, (currentTime / duration) * 100)) : 0}%` 
 									}}
 								>
 									{/* Animated shimmer effect */}
-									<div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
-									{/* Enhanced hover indicator */}
-									<div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-5 h-5 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl border-3 border-white scale-0 group-hover:scale-100" />
+									{currentSong && (
+										<>
+											<div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
+											{/* Enhanced hover indicator */}
+											<div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-5 h-5 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl border-3 border-white scale-0 group-hover:scale-100" />
+										</>
+									)}
 								</div>
 							</div>
 						</div>
 						
 						<span className="text-sm text-zinc-300 w-14 font-mono tracking-wide">
-							{formatTime(duration)}
+							{currentSong ? formatTime(duration) : '0:00'}
 						</span>
 					</div>
 				</div>
@@ -313,7 +350,7 @@ const AudioPlayer = () => {
 				<div className="flex items-center gap-4 w-[30%] justify-end">
 					{/* Volume Control */}
 					<div className="flex items-center gap-3">
-						<Volume2 className="h-5 w-5 text-zinc-400" />
+						<Volume2 className={`h-5 w-5 ${currentSong ? 'text-zinc-400' : 'text-zinc-600'}`} />
 						<div className="relative w-24">
 							<input
 								type="range"
@@ -322,9 +359,16 @@ const AudioPlayer = () => {
 								step="0.01"
 								value={volume}
 								onChange={(e) => setVolume(parseFloat(e.target.value))}
-								className="w-full h-2 bg-gradient-to-r from-zinc-700 to-zinc-600 rounded-lg appearance-none cursor-pointer slider shadow-inner"
+								disabled={!currentSong}
+								className={`w-full h-2 rounded-lg appearance-none slider shadow-inner ${
+									currentSong 
+										? 'bg-gradient-to-r from-zinc-700 to-zinc-600 cursor-pointer' 
+										: 'bg-zinc-800 cursor-not-allowed'
+								}`}
 								style={{
-									background: `linear-gradient(to right, rgb(34 197 94) 0%, rgb(34 197 94) ${volume * 100}%, rgb(63 63 70) ${volume * 100}%, rgb(63 63 70) 100%)`
+									background: currentSong 
+										? `linear-gradient(to right, rgb(34 197 94) 0%, rgb(34 197 94) ${volume * 100}%, rgb(63 63 70) ${volume * 100}%, rgb(63 63 70) 100%)`
+										: 'linear-gradient(to right, rgb(39 39 42) 0%, rgb(39 39 42) 100%)'
 								}}
 							/>
 						</div>
@@ -335,14 +379,17 @@ const AudioPlayer = () => {
 						variant="ghost"
 						size="icon"
 						onClick={() => setShowQueue(!showQueue)}
+						disabled={!currentSong}
 						className={`transition-all duration-200 hover:scale-110 relative ${
-							showQueue 
-								? 'text-green-400 hover:text-green-300 bg-green-500/20' 
-								: 'text-zinc-400 hover:text-white hover:bg-zinc-700/50'
+							currentSong 
+								? showQueue 
+									? 'text-green-400 hover:text-green-300 bg-green-500/20' 
+									: 'text-zinc-400 hover:text-white hover:bg-zinc-700/50'
+								: 'text-zinc-600 cursor-not-allowed'
 						}`}
 					>
 						<List className="h-5 w-5" />
-						{queue.length > 0 && (
+						{currentSong && queue.length > 0 && (
 							<span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 text-black text-xs rounded-full flex items-center justify-center font-bold">
 								{queue.length}
 							</span>
