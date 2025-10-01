@@ -5,9 +5,6 @@ const router = Router();
 
 router.get("/", getAlbums);
 router.get("/search", searchAlbums);
-// Temporarily remove parameterized route to test
-router.get("/test", (req, res) => {
-  res.status(200).json({ message: "Album test endpoint working" });
-});
+router.get("/:albumId", getAlbumById);
 
 export default router;
