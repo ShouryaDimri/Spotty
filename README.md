@@ -7,7 +7,7 @@ A full-stack music streaming application built with modern web technologies, fea
 - 🎧 **Music Streaming** - Play songs with full audio controls
 - 🎵 **Album Management** - Browse and play complete albums
 - 🔍 **Search Functionality** - Find songs, albums, and artists
-- 💬 **Real-time Chat** - Chat with other users using Socket.io
+- 💬 **Real-time Chat** - Chat with other users using Socket.io (requires alternative hosting)
 - 👨‍💼 **Admin Dashboard** - Manage songs, albums, and users
 - 🎨 **Modern UI** - Beautiful dark theme with responsive design
 - 🔐 **Authentication** - Secure OAuth with Clerk
@@ -18,7 +18,7 @@ A full-stack music streaming application built with modern web technologies, fea
 ### Backend
 - **Node.js** + **Express.js** - Server framework
 - **MongoDB** + **Mongoose** - Database and ODM
-- **Socket.io** - Real-time communication
+- **Socket.io** - Real-time communication (requires alternative hosting for full support)
 - **Clerk** - Authentication and user management
 - **Cloudinary** - File storage and CDN
 
@@ -40,19 +40,19 @@ A full-stack music streaming application built with modern web technologies, fea
 ## 🛠️ Setup Instructions
 
 ### 1. Clone the Repository
-\`\`\`bash
+```bash
 git clone <your-repo-url>
 cd spotty
-\`\`\`
+```
 
 ### 2. Backend Setup
-\`\`\`bash
+```bash
 cd backend
 npm install
-\`\`\`
+```
 
-Create a `.env` file in the backend directory:
-\`\`\`env
+Create a `.env` file in the backend directory (see [.env.example](backend/.env.example)):
+```env
 MONGODB_URI=your_mongodb_connection_string
 CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
 CLERK_SECRET_KEY=your_clerk_secret_key
@@ -61,39 +61,40 @@ CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
 CLOUDINARY_API_KEY=your_cloudinary_api_key
 CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 PORT=5137
-\`\`\`
+```
 
 ### 3. Frontend Setup
-\`\`\`bash
+```bash
 cd frontend
 npm install
-\`\`\`
+```
 
-Create a `.env` file in the frontend directory:
-\`\`\`env
+Create a `.env` file in the frontend directory (see [.env.example](frontend/.env.example)):
+```env
 VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-\`\`\`
+VITE_API_BASE_URL=http://localhost:5137/api
+```
 
 ### 4. Database Seeding (Optional)
-\`\`\`bash
+```bash
 cd backend
 npm run seed:songs
 npm run seed:albums
-\`\`\`
+```
 
 ### 5. Run the Application
 
 **Backend:**
-\`\`\`bash
+```bash
 cd backend
 npm run dev
-\`\`\`
+```
 
 **Frontend:**
-\`\`\`bash
+```bash
 cd frontend
 npm run dev
-\`\`\`
+```
 
 The application will be available at:
 - Frontend: http://localhost:5173
@@ -106,7 +107,7 @@ The application will be available at:
 2. **Browse Music** - Explore featured songs and albums on the home page
 3. **Search** - Find your favorite songs, albums, or artists
 4. **Play Music** - Click on any song to start playing
-5. **Chat** - Message other users in real-time
+5. **Chat** - Message other users in real-time (requires alternative hosting for full support)
 
 ### For Admins:
 1. **Admin Access** - Available if your email matches `ADMIN_EMAIL` in the environment
@@ -125,7 +126,7 @@ The application will be available at:
 
 ## 💬 Chat System
 
-- Real-time messaging using Socket.io
+- Real-time messaging using Socket.io (requires alternative hosting for full support)
 - User list with online status
 - Message history
 - Responsive chat interface
@@ -139,7 +140,7 @@ The application will be available at:
 
 ## 📁 Project Structure
 
-\`\`\`
+```
 spotty/
 ├── backend/
 │   ├── src/
@@ -160,7 +161,7 @@ spotty/
 │   │   └── types/        # TypeScript type definitions
 │   └── package.json
 └── README.md
-\`\`\`
+```
 
 ## 🎨 UI Components
 
@@ -193,15 +194,29 @@ The application uses shadcn/ui components for:
 
 ## 🚀 Deployment
 
-### Backend Deployment:
-1. Set up MongoDB Atlas or your preferred MongoDB hosting
-2. Configure environment variables
-3. Deploy to your preferred platform (Railway, Render, etc.)
+### Vercel Deployment (Recommended)
 
-### Frontend Deployment:
-1. Build the project: `npm run build`
-2. Deploy to Vercel, Netlify, or your preferred hosting platform
-3. Update environment variables
+This project is configured for direct deployment to Vercel:
+
+1. **Frontend Deployment:**
+   - Connect your GitHub repository to Vercel
+   - Set environment variables as described in [DEPLOYMENT.md](DEPLOYMENT.md)
+   - Deploy!
+
+2. **Backend Deployment:**
+   - Connect your GitHub repository to Vercel
+   - Set environment variables as described in [DEPLOYMENT.md](DEPLOYMENT.md)
+   - Deploy!
+   - **Note**: Socket.io functionality will be disabled on Vercel due to serverless limitations
+
+### Alternative Hosting for Full Socket.io Support
+
+For full real-time chat functionality, deploy the backend to:
+- Railway.app
+- Render.com
+- Heroku (with credit card)
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
 
 ## 🤝 Contributing
 

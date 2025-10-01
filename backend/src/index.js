@@ -16,8 +16,7 @@ import songRoutes from './routes/songRoutes.js';
 import albumRoutes from './routes/albumRoutes.js';
 import statRoutes from './routes/statRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
-
-
+import healthRoutes from './routes/healthRoutes.js';
 
 dotenv.config();
 
@@ -28,14 +27,23 @@ const __dirname = path.resolve();
 // Frontend URL for CORS - support both local and production
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
+// Create HTTP server
 const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: [FRONTEND_URL, "http://localhost:5173", "https://spotty-git-master-shouryadimris-projects.vercel.app"],
-    credentials: true
-  }
-});
 
+// Only initialize Socket.io if we're not in a serverless environment
+let io;
+if (process.env.NOW_REGION) {
+  // Running on Vercel - disable Socket.io or use a separate service
+  console.log('Running on Vercel - Socket.io disabled for serverless compatibility');
+} else {
+  // Running locally or on traditional server
+  io = new Server(httpServer, {
+    cors: {
+      origin: [FRONTEND_URL, "http://localhost:5173", "https://spotty-git-master-shouryadimris-projects.vercel.app"],
+      credentials: true
+    }
+  });
+}
 
 app.use(cors({
   origin: [FRONTEND_URL, "http://localhost:5173", "https://spotty-git-master-shouryadimris-projects.vercel.app"],
@@ -48,9 +56,8 @@ app.use(fileupload({
   useTempFiles: true,
   tempFileDir: path.join(__dirname, 'tmp'),
   createParentPath: true,
-limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit  
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit  
 }));
-
 
 // Debug middleware to log all incoming requests
 app.use((req, res, next) => {
@@ -65,91 +72,55 @@ app.use("/api/songs", songRoutes);
 app.use("/api/albums", albumRoutes);
 app.use("/api/statistics", statRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api", healthRoutes);
 
-// Socket.io connection handling
-const onlineUsers = new Map(); // Store online users with their status
-
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-
-  socket.on('join_room', (userId) => {
-    socket.join(userId);
-    socket.userId = userId;
-    console.log(`User ${userId} joined room`);
-  });
-
-  socket.on('user_status', (data) => {
-    const { userId, status } = data;
-    onlineUsers.set(userId, {
-      userId,
-      status,
-      socketId: socket.id,
-      lastSeen: new Date()
-    });
-    
-    // Broadcast status update to all clients
-    io.emit('user_status_update', {
-      userId,
-      status,
-      lastSeen: new Date()
-    });
-    
-    // Send current online users list to the new user
-    const onlineUsersList = Array.from(onlineUsers.values()).map(user => ({
-      userId: user.userId,
-      status: user.status,
-      lastSeen: user.lastSeen
-    }));
-    socket.emit('online_users', onlineUsersList);
-  });
-
-  socket.on('user_song_update', (data) => {
-    const { userId, song } = data;
-    if (onlineUsers.has(userId)) {
-      const user = onlineUsers.get(userId);
-      user.currentSong = song;
-      onlineUsers.set(userId, user);
-      
-      // Broadcast song update to all clients
-      io.emit('user_song_update', { userId, song });
-    }
-  });
-
-  socket.on('send_message', (data) => {
-    // Broadcast message to receiver
-    io.to(data.receiverId).emit('receive_message', {
-      senderId: data.senderId,
-      receiverId: data.receiverId,
-      message: data.message,
-      fileUrl: data.fileUrl,
-      fileType: data.fileType,
-      fileName: data.fileName,
-      createdAt: new Date().toISOString()
-    });
-  });
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-    
-    // Find and remove the disconnected user
-    for (const [userId, userData] of onlineUsers.entries()) {
-      if (userData.socketId === socket.id) {
-        onlineUsers.delete(userId);
-        // Notify all clients about user disconnect
-        io.emit('user_disconnected', userId);
-        break;
-      }
-    }
+// Add a root route to prevent 404 errors
+app.get('/', (req, res) => {
+  res.status(200).json({ 
+    message: 'Spotty Backend API is running!', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NOW_REGION ? 'Vercel Serverless' : 'Traditional Server',
+    availableEndpoints: [
+      '/api/health',
+      '/api/users',
+      '/api/auth', 
+      '/api/admin',
+      '/api/songs',
+      '/api/albums',
+      '/api/statistics',
+      '/api/messages'
+    ]
   });
 });
 
 // Debug middleware for 404
 app.use((req, res, next) => {
   console.log(`❌ 404: ${req.method} ${req.path}`);
-  res.status(404).send();
+  res.status(404).json({ 
+    error: 'Route not found',
+    path: req.path,
+    method: req.method,
+    availableRoutes: [
+      '/api/health',
+      '/api/users',
+      '/api/auth', 
+      '/api/admin',
+      '/api/songs',
+      '/api/albums',
+      '/api/statistics',
+      '/api/messages'
+    ]
+  });
 });
 
-httpServer.listen(PORT, () => {
-  console.log('Server is running on port:', PORT);
-  connectDB();
-});
+// Export for Vercel serverless functions
+export default app;
+export { app as handler };
+
+// Only start server if not in serverless environment
+if (!process.env.NOW_REGION) {
+  httpServer.listen(PORT, () => {
+    console.log('Server is running on port:', PORT);
+    connectDB();
+  });
+}
