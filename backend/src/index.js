@@ -76,6 +76,7 @@ app.use((req, res, next) => {
   next();
 });
 
+// API Routes - place these before static file serving to avoid conflicts
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);

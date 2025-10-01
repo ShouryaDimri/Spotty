@@ -8,12 +8,11 @@
   ],
   "routes": [
     {
-      "src": "/api/.*",
-      "dest": "api/index.js",
-      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH"]
+      "src": "/api/(.*)",
+      "dest": "api/index.js"
     },
     {
-      "src": "/socket.io/.*",
+      "src": "/socket.io/(.*)",
       "dest": "api/index.js"
     },
     {
