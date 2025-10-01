@@ -1,5 +1,6 @@
-import express from 'express';
-const router = express.Router();
+import { Router } from "express";
+
+const router = Router();
 
 // Health check endpoint
 router.get('/health', (req, res) => {
