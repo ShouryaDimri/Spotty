@@ -4,6 +4,12 @@ import axios from "axios";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
   (import.meta.env.MODE === 'production' ? "/api" : "http://localhost:5137/api");
 
+console.log('🔧 Axios Config:', {
+  MODE: import.meta.env.MODE,
+  VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+  API_BASE_URL: API_BASE_URL
+});
+
 export const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
     timeout: 10000, // 10 seconds timeout
