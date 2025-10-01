@@ -73,7 +73,7 @@ const ChatPg = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axiosInstance.get("/users");
+      const response = await axiosInstance.get<User[]>("/users");
       setUsers(response.data);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -84,7 +84,7 @@ const ChatPg = () => {
 
   const fetchMessages = async (userId: string) => {
     try {
-      const response = await axiosInstance.get(`/messages/${userId}`);
+      const response = await axiosInstance.get<Message[]>(`/messages/${userId}`);
       setMessages(response.data);
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -108,7 +108,7 @@ const ChatPg = () => {
         formData.append('file', selectedFile);
       }
 
-      const response = await axiosInstance.post("/messages", formData, {
+      const response = await axiosInstance.post<Message>("/messages", formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

@@ -2,11 +2,11 @@ import Topbar from "@/components/ui/topbar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useEffect, useState } from "react"
 import { axiosInstance } from "@/lib/axios"
-import type { Song, Album } from "@/types"
+import type { Song } from "@/types"
 import { usePlayerStore } from "@/stores/usePlayerStore"
 import { useMusicStore } from "@/stores/useMusicStore"
 import { Button } from "@/components/ui/button"
-import { Play, Pause, Clock, TrendingUp, Star, Music } from "lucide-react"
+import { Play, Pause, TrendingUp, Star, Music } from "lucide-react"
 import { Loader } from "lucide-react"
 
 const HomePg = () => {
@@ -20,8 +20,8 @@ const HomePg = () => {
     const fetchHomeData = async () => {
       try {
         const [featuredRes, trendingRes] = await Promise.all([
-          axiosInstance.get("/songs/made-for-you"),
-          axiosInstance.get("/songs/trending")
+          axiosInstance.get<Song[]>("/songs/made-for-you"),
+          axiosInstance.get<Song[]>("/songs/trending")
         ]);
         
         setFeaturedSongs(featuredRes.data);

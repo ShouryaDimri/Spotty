@@ -29,13 +29,13 @@ const SearchPg = () => {
 			setIsLoading(true);
 			try {
 				const [songsRes, albumsRes] = await Promise.all([
-					axiosInstance.get(`/songs/search?q=${encodeURIComponent(query)}`),
-					axiosInstance.get(`/albums/search?q=${encodeURIComponent(query)}`)
+					axiosInstance.get<Song[]>(`/songs/search?q=${encodeURIComponent(query)}`),
+					axiosInstance.get<Album[]>(`/albums/search?q=${encodeURIComponent(query)}`)
 				]);
 				
 				setSearchResults({
-					songs: songsRes.data || [],
-					albums: albumsRes.data || []
+					songs: Array.isArray(songsRes.data) ? songsRes.data : [],
+					albums: Array.isArray(albumsRes.data) ? albumsRes.data : []
 				});
 			} catch (error) {
 				console.error("Search error:", error);
