@@ -10,14 +10,8 @@ router.use(protectRoute, requireAdmin);
 router.get("/check" , checkAdmin);
 
 router.post("/songs", createSong );
+router.delete("/songs/:id", deleteSong );
 router.post("/albums", createAlbum );
-
-// Add simple test endpoints instead
-router.delete("/songs/test", (req, res) => {
-  res.status(200).json({ message: "Test song delete endpoint working" });
-});
-router.delete("/albums/test", (req, res) => {
-  res.status(200).json({ message: "Test album delete endpoint working" });
-});
+router.delete("/albums/:id", deleteAlbum );
 
 export default router;

@@ -220,6 +220,10 @@ For full real-time chat functionality, deploy the backend to:
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
 
+## 📋 Deployment Checklist
+
+For a step-by-step deployment guide, see [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md).
+
 ## 🤝 Contributing
 
 1. Fork the repository
