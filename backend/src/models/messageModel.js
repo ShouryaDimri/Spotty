@@ -24,6 +24,21 @@ const messageSchema = new mongoose.Schema({
     fileName : {
         type : String,
         required : false
+    },
+    replyTo: {
+        messageId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Message',
+            required: false
+        },
+        message: {
+            type: String,
+            required: false
+        },
+        senderName: {
+            type: String,
+            required: false
+        }
     }
 }, { timestamps : true });
 

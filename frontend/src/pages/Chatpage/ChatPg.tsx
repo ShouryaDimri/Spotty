@@ -3,7 +3,7 @@ import { useUser } from "@clerk/clerk-react";
 import { axiosInstance } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Loader, Paperclip, X, Download, Image, FileText, Music, Video } from "lucide-react";
+import { Send, Loader, Paperclip, X, Download, Image, FileText, Music, Video, MoreVertical, Edit, Trash2, Reply } from "lucide-react";
 import { io, Socket } from "socket.io-client";
 
 interface User {
@@ -22,6 +22,11 @@ interface Message {
   fileType?: string;
   fileName?: string;
   createdAt: string;
+  replyTo?: {
+    messageId: string;
+    message: string;
+    senderName: string;
+  };
 }
 
 const ChatPg = () => {
@@ -35,6 +40,11 @@ const ChatPg = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editedMessage, setEditedMessage] = useState("");
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [showUsersList, setShowUsersList] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,6 +61,18 @@ const ChatPg = () => {
       // Listen for incoming messages
       newSocket.on("receive_message", (message: Message) => {
         setMessages(prev => [...prev, message]);
+      });
+
+      // Listen for message edits
+      newSocket.on("message_edited", (data: { messageId: string; message: string }) => {
+        setMessages(prev => prev.map(msg => 
+          msg._id === data.messageId ? { ...msg, message: data.message } : msg
+        ));
+      });
+
+      // Listen for message deletions
+      newSocket.on("message_deleted", (data: { messageId: string }) => {
+        setMessages(prev => prev.filter(msg => msg._id !== data.messageId));
       });
 
       return () => {
@@ -95,7 +117,7 @@ const ChatPg = () => {
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((!newMessage.trim() && !selectedFile) || !selectedUser || !socket) return;
+    if ((!newMessage.trim() && !selectedFile) || !selectedUser) return;
 
     setIsUploading(true);
     try {
@@ -110,6 +132,11 @@ const ChatPg = () => {
         formData.append('file', selectedFile);
       }
 
+      // Include reply information if replying
+      if (replyingTo) {
+        formData.append('replyToId', replyingTo._id);
+      }
+
       const response = await axiosInstance.post("/messages", formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -117,17 +144,22 @@ const ChatPg = () => {
       });
 
       setMessages(prev => [...prev, response.data]);
-      socket.emit("send_message", {
-        senderId: user?.id,
-        receiverId: selectedUser.clerkId,
-        message: newMessage.trim(),
-        fileUrl: response.data.fileUrl,
-        fileType: response.data.fileType,
-        fileName: response.data.fileName
-      });
+      
+      if (socket) {
+        socket.emit("send_message", {
+          senderId: user?.id,
+          receiverId: selectedUser.clerkId,
+          message: newMessage.trim(),
+          fileUrl: response.data.fileUrl,
+          fileType: response.data.fileType,
+          fileName: response.data.fileName,
+          replyTo: response.data.replyTo
+        });
+      }
       
       setNewMessage("");
       setSelectedFile(null);
+      setReplyingTo(null);
     } catch (error) {
       console.error("Error sending message:", error);
     } finally {
@@ -165,6 +197,49 @@ const ChatPg = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      await axiosInstance.delete(`/messages/${messageId}`);
+      setMessages(prev => prev.filter(msg => msg._id !== messageId));
+      if (socket) {
+        socket.emit("delete_message", { messageId, receiverId: selectedUser?.clerkId });
+      }
+    } catch (error) {
+      console.error("Error deleting message:", error);
+    }
+  };
+
+  const handleEditMessage = async (messageId: string) => {
+    if (!editedMessage.trim()) return;
+    try {
+      const response = await axiosInstance.put(`/messages/${messageId}`, {
+        message: editedMessage.trim()
+      });
+      setMessages(prev => prev.map(msg => 
+        msg._id === messageId ? { ...msg, message: response.data.message } : msg
+      ));
+      if (socket) {
+        socket.emit("edit_message", { 
+          messageId, 
+          message: editedMessage.trim(),
+          receiverId: selectedUser?.clerkId 
+        });
+      }
+      setEditingMessageId(null);
+      setEditedMessage("");
+    } catch (error) {
+      console.error("Error editing message:", error);
+    }
+  };
+
+  const handleReplyToMessage = (message: Message) => {
+    setReplyingTo(message);
+  };
+
+  const cancelReply = () => {
+    setReplyingTo(null);
+  };
+
   if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -174,12 +249,16 @@ const ChatPg = () => {
   }
 
   return (
-    <div className="h-full flex chat-container" style={{ height: 'calc(100vh - 80px)' }}>
+    <div className="h-full flex chat-container relative" style={{ height: 'calc(100vh - 80px)' }}>
       {/* Users List */}
       <div 
-        className={`border-r border-zinc-800 bg-zinc-900 transition-all duration-300 ease-in-out overflow-hidden h-full ${
-          isHovered ? 'w-80' : 'w-16'
-        }`}
+        className={`border-r border-zinc-800 bg-zinc-900 transition-all duration-300 ease-in-out overflow-hidden h-full
+          ${isHovered ? 'w-80' : 'w-16'}
+          md:${isHovered ? 'w-80' : 'w-16'}
+          ${showUsersList ? 'block' : 'hidden md:block'}
+          ${selectedUser && !showUsersList ? 'hidden' : 'block'}
+          md:block absolute md:relative z-20 md:z-auto
+        `}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -201,7 +280,10 @@ const ChatPg = () => {
             {users.map((chatUser) => (
               <div
                 key={chatUser._id}
-                onClick={() => setSelectedUser(chatUser)}
+                onClick={() => {
+                  setSelectedUser(chatUser);
+                  setShowUsersList(false); // Hide user list on mobile when selecting a user
+                }}
                 className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors 
                   ${selectedUser?._id === chatUser._id 
                     ? 'bg-zinc-700' 
@@ -232,6 +314,17 @@ const ChatPg = () => {
             {/* Chat Header */}
             <div className="p-4 border-b border-zinc-800 bg-zinc-900 flex-shrink-0">
               <div className="flex items-center gap-3">
+                {/* Back button for mobile */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowUsersList(true)}
+                  className="md:hidden text-zinc-400 hover:text-white"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m15 18-6-6 6-6"/>
+                  </svg>
+                </Button>
                 <img
                   src={selectedUser.imageUrl}
                   alt={selectedUser.fullName}
@@ -246,21 +339,70 @@ const ChatPg = () => {
               <div className="space-y-4">
                 {messages.map((message) => {
                   const isMyMessage = message.senderId === user?.id;
+                  const isEditing = editingMessageId === message._id;
                   return (
                     <div
                       key={message._id}
-                      className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
+                      className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} group`}
+                      onMouseEnter={() => setHoveredMessageId(message._id)}
+                      onMouseLeave={() => setHoveredMessageId(null)}
                     >
-                      <div
-                        className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg ${
-                          isMyMessage
-                            ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-black'
-                            : 'bg-gradient-to-r from-zinc-700 to-zinc-600 text-white'
-                        } shadow-lg`}
-                      >
-                        {/* Text Message */}
-                        {message.message && (
-                          <p className="mb-2">{message.message}</p>
+                      <div className="relative flex items-start gap-2">
+                        {/* Message Bubble */}
+                        <div
+                          className={`max-w-[75%] sm:max-w-xs lg:max-w-md px-4 py-3 rounded-lg ${
+                            isMyMessage
+                              ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-black'
+                              : 'bg-gradient-to-r from-zinc-700 to-zinc-600 text-white'
+                          } shadow-lg`}
+                        >
+                        {/* Reply Preview */}
+                        {message.replyTo && (
+                          <div className={`mb-2 p-2 rounded border-l-2 ${
+                            isMyMessage 
+                              ? 'bg-black/20 border-black/40' 
+                              : 'bg-white/10 border-white/30'
+                          }`}>
+                            <p className="text-xs opacity-70">{message.replyTo.senderName}</p>
+                            <p className="text-sm truncate">{message.replyTo.message}</p>
+                          </div>
+                        )}
+                        
+                        {/* Text Message - Edit Mode */}
+                        {isEditing ? (
+                          <div className="space-y-2">
+                            <input
+                              type="text"
+                              value={editedMessage}
+                              onChange={(e) => setEditedMessage(e.target.value)}
+                              className="w-full px-2 py-1 bg-white/20 border border-white/30 rounded text-sm"
+                              autoFocus
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleEditMessage(message._id)}
+                                className="bg-white/20 hover:bg-white/30 text-xs"
+                              >
+                                Save
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setEditingMessageId(null);
+                                  setEditedMessage("");
+                                }}
+                                className="text-xs"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          message.message && (
+                            <p className="mb-2">{message.message}</p>
+                          )
                         )}
                         
                         {/* File Attachment */}
@@ -305,6 +447,43 @@ const ChatPg = () => {
                           })}
                         </p>
                       </div>
+                      
+                      {/* 3-Dot Menu - Show on hover (desktop) or always (mobile), only for own messages */}
+                      {(hoveredMessageId === message._id || window.innerWidth < 768) && isMyMessage && (
+                        <div className="flex gap-1 ml-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => {
+                              setEditingMessageId(message._id);
+                              setEditedMessage(message.message || "");
+                            }}
+                            className="h-8 w-8 hover:bg-zinc-700 text-zinc-400 hover:text-white"
+                            title="Edit"
+                          >
+                            <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => handleDeleteMessage(message._id)}
+                            className="h-8 w-8 hover:bg-zinc-700 text-zinc-400 hover:text-red-400"
+                            title="Delete"
+                          >
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => handleReplyToMessage(message)}
+                            className="h-8 w-8 hover:bg-zinc-700 text-zinc-400 hover:text-white"
+                            title="Reply"
+                          >
+                            <Reply className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </Button>
+                        </div>
+                      )}
+                      </div>
                     </div>
                   );
                 })}
@@ -315,6 +494,26 @@ const ChatPg = () => {
             {/* Message Input */}
             <div className="border-t border-zinc-800 bg-gradient-to-r from-zinc-900 to-zinc-800 chat-input-area">
               <form onSubmit={sendMessage} className="p-4">
+                {/* Reply Preview */}
+                {replyingTo && (
+                  <div className="mb-3 p-3 bg-zinc-700/50 rounded-lg flex items-start gap-3">
+                    <Reply className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-zinc-400 text-xs">Replying to</p>
+                      <p className="text-white text-sm truncate">{replyingTo.message}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={cancelReply}
+                      className="text-zinc-400 hover:text-white w-8 h-8"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+                
                 {/* File Preview */}
                 {selectedFile && (
                   <div className="mb-3 p-3 bg-zinc-700/50 rounded-lg flex items-center gap-3">
@@ -365,7 +564,7 @@ const ChatPg = () => {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder={selectedFile ? "Add a message (optional)..." : "Type a message..."}
-                    className="flex-1 px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="flex-1 px-3 sm:px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm sm:text-base"
                   />
                   
                   {/* Send Button */}

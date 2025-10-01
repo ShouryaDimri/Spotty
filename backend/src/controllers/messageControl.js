@@ -30,14 +30,28 @@ export const sendMessage = async (req, res) => {
         // Ensure database connection in serverless environment
         await connectDB();
         
-        const { receiverId, message } = req.body;
+        const { receiverId, message, replyToId } = req.body;
         const senderId = req.auth.userId;
         let fileUrl = null;
         let fileType = null;
         let fileName = null;
+        let replyToData = null;
 
         if (!receiverId || (!message && !req.files?.file)) {
             return res.status(400).json({ message: "Receiver ID and message or file are required" });
+        }
+
+        // Handle reply if present
+        if (replyToId) {
+            const replyMessage = await Message.findById(replyToId);
+            if (replyMessage) {
+                const replySender = await User.findOne({ clerkId: replyMessage.senderId });
+                replyToData = {
+                    messageId: replyMessage._id,
+                    message: replyMessage.message,
+                    senderName: replySender?.fullName || 'Unknown'
+                };
+            }
         }
 
         // Handle file upload if present
@@ -71,13 +85,68 @@ export const sendMessage = async (req, res) => {
             message: message || '',
             fileUrl,
             fileType,
-            fileName
+            fileName,
+            replyTo: replyToData
         });
 
         await newMessage.save();
         res.status(201).json(newMessage);
     } catch (error) {
         console.error("Error sending message:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+export const editMessage = async (req, res) => {
+    try {
+        await connectDB();
+        
+        const { messageId } = req.params;
+        const { message } = req.body;
+        const userId = req.auth.userId;
+
+        const msg = await Message.findById(messageId);
+        
+        if (!msg) {
+            return res.status(404).json({ message: "Message not found" });
+        }
+
+        if (msg.senderId !== userId) {
+            return res.status(403).json({ message: "Not authorized to edit this message" });
+        }
+
+        msg.message = message;
+        await msg.save();
+
+        res.status(200).json(msg);
+    } catch (error) {
+        console.error("Error editing message:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+export const deleteMessage = async (req, res) => {
+    try {
+        await connectDB();
+        
+        const { messageId } = req.params;
+        const userId = req.auth.userId;
+
+        const msg = await Message.findById(messageId);
+        
+        if (!msg) {
+            return res.status(404).json({ message: "Message not found" });
+        }
+
+        if (msg.senderId !== userId) {
+            return res.status(403).json({ message: "Not authorized to delete this message" });
+        }
+
+        await Message.findByIdAndDelete(messageId);
+
+        res.status(200).json({ message: "Message deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting message:", error);
         res.status(500).json({ message: "Server error" });
     }
 };
