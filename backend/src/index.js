@@ -86,8 +86,8 @@ app.use("/api/statistics", statRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api", healthRoutes);
 
-// Serve static files from frontend dist folder in production
-if (process.env.NODE_ENV === 'production') {
+// Serve static files from frontend dist folder in production (only for non-serverless)
+if (process.env.NODE_ENV === 'production' && !process.env.NOW_REGION) {
   const frontendDistPath = path.join(__dirname, '..', 'frontend', 'dist');
   
   // Check if frontend dist folder exists
@@ -98,36 +98,16 @@ if (process.env.NODE_ENV === 'production') {
     app.get('/*', (req, res) => {
       res.sendFile(path.join(frontendDistPath, 'index.html'));
     });
-  } else {
-    // If frontend is not built, show a simple message
-    app.get('/*', (req, res) => {
-      res.status(200).json({ 
-        message: 'Spotty Backend API is running!', 
-        note: 'Frontend has not been built yet. API endpoints are available at /api/*',
-        timestamp: new Date().toISOString(),
-        environment: process.env.NOW_REGION ? 'Vercel Serverless' : 'Traditional Server',
-        availableEndpoints: [
-          '/api/health',
-          '/api/users',
-          '/api/auth', 
-          '/api/admin',
-          '/api/songs',
-          '/api/albums',
-          '/api/statistics',
-          '/api/messages'
-        ]
-      });
-    });
   }
 }
 
-// Add a root route to prevent 404 errors (only in development or when frontend is not built)
-if (process.env.NODE_ENV !== 'production' || !fs.existsSync(path.join(__dirname, '..', 'frontend', 'dist'))) {
+// Add a root route to prevent 404 errors (only in development)
+if (process.env.NODE_ENV !== 'production') {
   app.get('/', (req, res) => {
     res.status(200).json({ 
       message: 'Spotty Backend API is running!', 
       timestamp: new Date().toISOString(),
-      environment: process.env.NOW_REGION ? 'Vercel Serverless' : 'Traditional Server',
+      environment: 'Development',
       availableEndpoints: [
         '/api/health',
         '/api/users',
