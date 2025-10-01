@@ -10,9 +10,8 @@ router.use(protectRoute, requireAdmin);
 router.get("/check" , checkAdmin);
 
 router.post("/songs", createSong );
-// Temporarily remove the parameterized routes to test if they're causing the issue
-router.delete("/songs/song/:id" , deleteSong);
+router.delete("/songs/:id" , deleteSong);
 router.post("/albums", createAlbum );
-router.delete("/albums/album/:id" , deleteAlbum);
+router.delete("/albums/:id" , deleteAlbum);
 
 export default router;
