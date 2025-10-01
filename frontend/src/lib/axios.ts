@@ -1,13 +1,16 @@
 import axios from "axios";
 
-// Use VITE_API_BASE_URL if set, otherwise default based on environment
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-  (import.meta.env.MODE === 'production' ? "/api" : "http://localhost:5137/api");
+// In production, always use relative /api path (same domain)
+// In development, use localhost
+const API_BASE_URL = import.meta.env.MODE === 'production' 
+  ? "/api" 
+  : "http://localhost:5137/api";
 
 console.log('🔧 Axios Config:', {
   MODE: import.meta.env.MODE,
   VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
-  API_BASE_URL: API_BASE_URL
+  API_BASE_URL: API_BASE_URL,
+  FORCED_TO_RELATIVE: true
 });
 
 export const axiosInstance = axios.create({
