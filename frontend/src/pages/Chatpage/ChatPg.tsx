@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Loader, Paperclip, X, Download, Image, FileText, Music, Video } from "lucide-react";
 import { io, Socket } from "socket.io-client";
-import { usePlayerStore } from "@/stores/usePlayerStore";
 
 interface User {
   _id: string;
@@ -37,9 +36,6 @@ const ChatPg = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  // Get current song from player store to determine if audio player is visible
-  const { currentSong } = usePlayerStore();
 
   useEffect(() => {
     // Initialize socket connection
@@ -175,12 +171,8 @@ const ChatPg = () => {
     );
   }
 
-  // Dynamic height calculation based on whether audio player is visible
-  const chatHeight = currentSong ? 'calc(100vh - 180px)' : 'calc(100vh - 80px)';
-  const messagesHeight = currentSong ? 'calc(100vh - 320px)' : 'calc(100vh - 220px)';
-
   return (
-    <div className="h-full flex chat-container transition-all duration-300" style={{ height: chatHeight }}>
+    <div className="h-full flex chat-container" style={{ height: 'calc(100vh - 80px)' }}>
       {/* Users List */}
       <div 
         className={`border-r border-zinc-800 bg-zinc-900 transition-all duration-300 ease-in-out overflow-hidden h-full ${
@@ -248,7 +240,7 @@ const ChatPg = () => {
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4 transition-all duration-300" style={{ height: messagesHeight }}>
+            <ScrollArea className="flex-1 p-4" style={{ height: 'calc(100vh - 240px)' }}>
               <div className="space-y-4">
                 {messages.map((message) => {
                   const isMyMessage = message.senderId === user?.id;
