@@ -12,12 +12,4 @@ router.get('/health', (req, res) => {
   });
 });
 
-// Simple test endpoint
-router.get('/test', (req, res) => {
-  res.status(200).json({ 
-    message: 'Test endpoint working!',
-    timestamp: new Date().toISOString()
-  });
-});
-
 export default router;

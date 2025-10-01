@@ -4,7 +4,10 @@ import { getMessages, sendMessage } from "../controllers/messageControl.js";
 
 const router = Router();
 
-router.get("/:userId", protectRoute, getMessages);
+// Temporarily remove parameterized route to test
+router.get("/test", protectRoute, (req, res) => {
+  res.status(200).json({ message: "Test endpoint working" });
+});
 router.post("/", protectRoute, sendMessage);
 
 export default router;

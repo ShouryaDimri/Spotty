@@ -10,6 +10,7 @@ import fs from 'fs';
 
 import { connectDB } from './lib/db.js';  
 
+// Import routes
 import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import authRoutes from './routes/authRoutes.js';
@@ -86,79 +87,12 @@ app.use("/api/statistics", statRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api", healthRoutes);
 
-// Serve static files from frontend dist folder in production
-if (process.env.NODE_ENV === 'production') {
-  const frontendDistPath = path.join(__dirname, '..', 'frontend', 'dist');
-  
-  // Check if frontend dist folder exists
-  if (fs.existsSync(frontendDistPath)) {
-    app.use(express.static(frontendDistPath));
-    
-    // Handle React routing, return all requests to React app
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(frontendDistPath, 'index.html'));
-    });
-  } else {
-    // If frontend is not built, show a simple message
-    app.get('*', (req, res) => {
-      res.status(200).json({ 
-        message: 'Spotty Backend API is running!', 
-        note: 'Frontend has not been built yet. API endpoints are available at /api/*',
-        timestamp: new Date().toISOString(),
-        environment: process.env.NOW_REGION ? 'Vercel Serverless' : 'Traditional Server',
-        availableEndpoints: [
-          '/api/health',
-          '/api/users',
-          '/api/auth', 
-          '/api/admin',
-          '/api/songs',
-          '/api/albums',
-          '/api/statistics',
-          '/api/messages'
-        ]
-      });
-    });
-  }
-}
-
-// Add a root route to prevent 404 errors (only in development or when frontend is not built)
-if (process.env.NODE_ENV !== 'production' || !fs.existsSync(path.join(__dirname, '..', 'frontend', 'dist'))) {
-  app.get('/', (req, res) => {
-    res.status(200).json({ 
-      message: 'Spotty Backend API is running!', 
-      timestamp: new Date().toISOString(),
-      environment: process.env.NOW_REGION ? 'Vercel Serverless' : 'Traditional Server',
-      availableEndpoints: [
-        '/api/health',
-        '/api/users',
-        '/api/auth', 
-        '/api/admin',
-        '/api/songs',
-        '/api/albums',
-        '/api/statistics',
-        '/api/messages'
-      ]
-    });
-  });
-}
-
-// Debug middleware for 404
-app.use((req, res, next) => {
-  console.log(`❌ 404: ${req.method} ${req.path}`);
-  res.status(404).json({ 
-    error: 'Route not found',
-    path: req.path,
-    method: req.method,
-    availableRoutes: [
-      '/api/health',
-      '/api/users',
-      '/api/auth', 
-      '/api/admin',
-      '/api/songs',
-      '/api/albums',
-      '/api/statistics',
-      '/api/messages'
-    ]
+// Simple root route for testing
+app.get('/', (req, res) => {
+  res.status(200).json({ 
+    message: 'Spotty Backend API is running!', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NOW_REGION ? 'Vercel Serverless' : 'Traditional Server'
   });
 });
 
