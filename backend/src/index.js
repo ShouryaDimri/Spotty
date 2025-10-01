@@ -94,30 +94,31 @@ if (process.env.NODE_ENV === 'production') {
   if (fs.existsSync(frontendDistPath)) {
     app.use(express.static(frontendDistPath));
     
+    // Temporarily remove the catch-all route to test if it's causing the issue
     // Handle React routing, return all requests to React app
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(frontendDistPath, 'index.html'));
-    });
+    // app.get('*', (req, res) => {
+    //   res.sendFile(path.join(frontendDistPath, 'index.html'));
+    // });
   } else {
     // If frontend is not built, show a simple message
-    app.get('*', (req, res) => {
-      res.status(200).json({ 
-        message: 'Spotty Backend API is running!', 
-        note: 'Frontend has not been built yet. API endpoints are available at /api/*',
-        timestamp: new Date().toISOString(),
-        environment: process.env.NOW_REGION ? 'Vercel Serverless' : 'Traditional Server',
-        availableEndpoints: [
-          '/api/health',
-          '/api/users',
-          '/api/auth', 
-          '/api/admin',
-          '/api/songs',
-          '/api/albums',
-          '/api/statistics',
-          '/api/messages'
-        ]
-      });
-    });
+    // app.get('*', (req, res) => {
+    //   res.status(200).json({ 
+    //     message: 'Spotty Backend API is running!', 
+    //     note: 'Frontend has not been built yet. API endpoints are available at /api/*',
+    //     timestamp: new Date().toISOString(),
+    //     environment: process.env.NOW_REGION ? 'Vercel Serverless' : 'Traditional Server',
+    //     availableEndpoints: [
+    //       '/api/health',
+    //       '/api/users',
+    //       '/api/auth', 
+    //       '/api/admin',
+    //       '/api/songs',
+    //       '/api/albums',
+    //       '/api/statistics',
+    //       '/api/messages'
+    //     ]
+    //   });
+    // });
   }
 }
 
@@ -142,25 +143,26 @@ if (process.env.NODE_ENV !== 'production' || !fs.existsSync(path.join(__dirname,
   });
 }
 
+// Temporarily remove the debug middleware to test if it's causing the issue
 // Debug middleware for 404
-app.use((req, res, next) => {
-  console.log(`❌ 404: ${req.method} ${req.path}`);
-  res.status(404).json({ 
-    error: 'Route not found',
-    path: req.path,
-    method: req.method,
-    availableRoutes: [
-      '/api/health',
-      '/api/users',
-      '/api/auth', 
-      '/api/admin',
-      '/api/songs',
-      '/api/albums',
-      '/api/statistics',
-      '/api/messages'
-    ]
-  });
-});
+// app.use((req, res, next) => {
+//   console.log(`❌ 404: ${req.method} ${req.path}`);
+//   res.status(404).json({ 
+//     error: 'Route not found',
+//     path: req.path,
+//     method: req.method,
+//     availableRoutes: [
+//       '/api/health',
+//       '/api/users',
+//       '/api/auth', 
+//       '/api/admin',
+//       '/api/songs',
+//       '/api/albums',
+//       '/api/statistics',
+//       '/api/messages'
+//     ]
+//   });
+// });
 
 // Create handler for Vercel serverless functions
 let handler = app; // Default to express app

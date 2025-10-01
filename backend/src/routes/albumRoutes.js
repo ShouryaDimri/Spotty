@@ -5,6 +5,7 @@ const router = Router();
 
 router.get("/", getAlbums);
 router.get("/search", searchAlbums);
-router.get("/:albumId", getAlbumById);
+// Temporarily remove the parameterized route to test if it's causing the issue
+router.get("/album/:albumId", getAlbumById);
 
 export default router;
