@@ -25,6 +25,9 @@ const app = express();
 const PORT = process.env.PORT || 5137;
 const __dirname = path.resolve();
 
+// Detect serverless (Vercel) environment
+const IS_SERVERLESS = Boolean(process.env.NOW_REGION || process.env.VERCEL);
+
 // Frontend URL for CORS - support both local and production
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
@@ -33,7 +36,7 @@ const httpServer = createServer(app);
 
 // Only initialize Socket.io if we're not in a serverless environment
 let io;
-if (process.env.NOW_REGION) {
+if (IS_SERVERLESS) {
   // Running on Vercel - disable Socket.io or use a separate service
   console.log('Running on Vercel - Socket.io disabled for serverless compatibility');
 } else {
@@ -65,10 +68,24 @@ app.use(express.json()); // to parse JSON bodies
 app.use(clerkMiddleware());
 app.use(fileupload({
   useTempFiles: true,
-  tempFileDir: path.join(__dirname, 'tmp'),
+  // Use Vercel's writable temp directory in serverless
+  tempFileDir: IS_SERVERLESS ? '/tmp' : path.join(__dirname, 'tmp'),
   createParentPath: true,
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit  
 }));
+
+// Ensure database connection in serverless on every request (cached in connectDB)
+if (IS_SERVERLESS) {
+  app.use(async (req, res, next) => {
+    try {
+      await connectDB();
+      next();
+    } catch (error) {
+      console.error('Failed to connect to MongoDB in serverless environment', error);
+      res.status(500).json({ message: 'Database connection error' });
+    }
+  });
+}
 
 // Debug middleware to log all incoming requests
 app.use((req, res, next) => {
@@ -105,7 +122,7 @@ if (process.env.NODE_ENV === 'production') {
         message: 'Spotty Backend API is running!', 
         note: 'Frontend has not been built yet. API endpoints are available at /api/*',
         timestamp: new Date().toISOString(),
-        environment: process.env.NOW_REGION ? 'Vercel Serverless' : 'Traditional Server',
+        environment: IS_SERVERLESS ? 'Vercel Serverless' : 'Traditional Server',
         availableEndpoints: [
           '/api/health',
           '/api/users',
@@ -127,7 +144,7 @@ if (process.env.NODE_ENV !== 'production' || !fs.existsSync(path.join(__dirname,
     res.status(200).json({ 
       message: 'Spotty Backend API is running!', 
       timestamp: new Date().toISOString(),
-      environment: process.env.NOW_REGION ? 'Vercel Serverless' : 'Traditional Server',
+      environment: IS_SERVERLESS ? 'Vercel Serverless' : 'Traditional Server',
       availableEndpoints: [
         '/api/health',
         '/api/users',
@@ -167,7 +184,7 @@ let handler = app; // Default to express app
 
 // Only start server if not in serverless environment
 // In serverless environment, Vercel will handle the server creation
-if (!process.env.NOW_REGION) {
+if (!IS_SERVERLESS) {
   // Connect to database and start server only in traditional environment
   connectDB().then(() => {
     httpServer.listen(PORT, () => {
