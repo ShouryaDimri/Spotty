@@ -1,15 +1,11 @@
 {
   "version": 2,
   "functions": {
-    "backend/api/index.js": {
+    "api/index.js": {
       "maxDuration": 30
     }
   },
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api"
-    },
     {
       "source": "/(.*)",
       "destination": "/api"
