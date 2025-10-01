@@ -1,7 +1,7 @@
 import {Song} from "../models/songModel.js";
 import {Album} from "../models/albumModel.js";
 import cloudinary from "../lib/cloudinary.js";
-
+import { connectDB } from "../lib/db.js";
 
 const uploadToCloudinary = async (file) => {
     try {
@@ -17,6 +17,9 @@ const uploadToCloudinary = async (file) => {
 
 export const createSong = async (req, res) => {
    try {
+    // Ensure database connection in serverless environment
+    await connectDB();
+    
     if (!req.files || !req.files.audioFile || !req.files.imageFile) {
       return res.status(400).json({ message: "Audio file and image file are required" });
     }
@@ -51,6 +54,9 @@ export const createSong = async (req, res) => {
 
 export const deleteSong = async (req, res) => {
     try {
+        // Ensure database connection in serverless environment
+        await connectDB();
+        
         const { id } = req.params;
         const song = await Song.findById(id);
 
@@ -70,6 +76,9 @@ export const deleteSong = async (req, res) => {
 
 export const createAlbum = async (req, res) => {
     try {
+        // Ensure database connection in serverless environment
+        await connectDB();
+        
         const {title, artist, releaseYear} = req.body;
         const {imageFile} = req.files;
         
@@ -95,6 +104,9 @@ export const createAlbum = async (req, res) => {
 
 export const deleteAlbum = async (req, res) => {
     try {
+        // Ensure database connection in serverless environment
+        await connectDB();
+        
         const { id } = req.params;
         await Song.deleteMany({ albumId: id });
         await Album.findByIdAndDelete(id);

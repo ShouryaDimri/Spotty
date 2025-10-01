@@ -1,9 +1,13 @@
 import {Song} from "../models/songModel.js";
 import {User} from "../models/userModel.js";
 import {Album} from "../models/albumModel.js";
+import { connectDB } from "../lib/db.js";
 
 export const getStats = async(req, res) => {
     try {
+        // Ensure database connection in serverless environment
+        await connectDB();
+        
         const [totalSongs, totalUsers, totalAlbums, uniqueArtists] = await Promise.all([
             Song.countDocuments(),
             User.countDocuments(),

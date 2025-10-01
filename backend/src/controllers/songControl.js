@@ -1,7 +1,11 @@
 import { Song } from "../models/songModel.js";
+import { connectDB } from "../lib/db.js";
 
 export const getAllSongs = async(req, res) => {
     try {
+        // Ensure database connection in serverless environment
+        await connectDB();
+        
         const songs = await Song.aggregate(                        // fetch top 6 songs from mongoDB
             { $sample: { size: 6 } } ,
             { $project: {
@@ -13,7 +17,6 @@ export const getAllSongs = async(req, res) => {
             }}
         );
 
-
         res.status(200).json(songs);    
     } catch (error) {
         console.error("Error fetching songs:", error);
@@ -23,6 +26,9 @@ export const getAllSongs = async(req, res) => {
 
 export const getFeaturedSongs = async(req, res) => {
     try {
+        // Ensure database connection in serverless environment
+        await connectDB();
+        
         // Add 3 dummy songs for "Made For You" section
         const dummySongs = [
             {
@@ -75,6 +81,9 @@ export const getFeaturedSongs = async(req, res) => {
 
 export const getTrendingSongs = async(req, res) => {
     try {
+        // Ensure database connection in serverless environment
+        await connectDB();
+        
         // Add 4 dummy songs for "Trending Now" section
         const dummySongs = [
             {
@@ -135,6 +144,9 @@ export const getTrendingSongs = async(req, res) => {
 
 export const searchSongs = async(req, res) => {
     try {
+        // Ensure database connection in serverless environment
+        await connectDB();
+        
         const { q } = req.query;
         
         if (!q) {

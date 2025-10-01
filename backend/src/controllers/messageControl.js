@@ -1,9 +1,13 @@
 import { Message } from "../models/messageModel.js";
 import { User } from "../models/userModel.js";
 import cloudinary from "../lib/cloudinary.js";
+import { connectDB } from "../lib/db.js";
 
 export const getMessages = async (req, res) => {
     try {
+        // Ensure database connection in serverless environment
+        await connectDB();
+        
         const { userId } = req.params;
         const myId = req.auth.userId;
 
@@ -23,6 +27,9 @@ export const getMessages = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
     try {
+        // Ensure database connection in serverless environment
+        await connectDB();
+        
         const { receiverId, message } = req.body;
         const senderId = req.auth.userId;
         let fileUrl = null;

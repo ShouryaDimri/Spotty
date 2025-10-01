@@ -166,9 +166,14 @@ export default app;
 export { app as handler };
 
 // Only start server if not in serverless environment
+// In serverless environment, Vercel will handle the server creation
 if (!process.env.NOW_REGION) {
-  httpServer.listen(PORT, () => {
-    console.log('Server is running on port:', PORT);
-    connectDB();
+  // Connect to database and start server only in traditional environment
+  connectDB().then(() => {
+    httpServer.listen(PORT, () => {
+      console.log('Server is running on port:', PORT);
+    });
+  }).catch((error) => {
+    console.error('Failed to start server:', error);
   });
 }
