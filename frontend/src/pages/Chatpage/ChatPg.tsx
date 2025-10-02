@@ -410,6 +410,61 @@ const ChatPg = () => {
                       onMouseLeave={() => setHoveredMessageId(null)}
                     >
                       <div className="relative flex items-start gap-2">
+                        {/* 3-Dot Menu - Show above message on hover, only for own messages */}
+                        {isMyMessage && (
+                          <div className="relative message-menu">
+                            {/* 3-Dot Button - Show above message on hover */}
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => toggleMenu(message._id)}
+                              className={`h-6 w-6 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-opacity duration-200 absolute -top-8 right-0 ${
+                                hoveredMessageId === message._id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                              }`}
+                              title="More options"
+                            >
+                              <MoreVertical className="h-3 w-3" />
+                            </Button>
+                            
+                            {/* Dropdown Menu */}
+                            {openMenuId === message._id && (
+                              <div className="absolute right-0 -top-12 z-50 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg py-1 min-w-[80px]">
+                                <button
+                                  onClick={() => {
+                                    setEditingMessageId(message._id);
+                                    setEditedMessage(message.message || "");
+                                    closeMenu();
+                                  }}
+                                  className="w-full px-3 py-2 text-left text-sm text-white hover:bg-zinc-700 flex items-center justify-center"
+                                  title="Edit"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    handleReplyToMessage(message);
+                                    closeMenu();
+                                  }}
+                                  className="w-full px-3 py-2 text-left text-sm text-white hover:bg-zinc-700 flex items-center justify-center"
+                                  title="Reply"
+                                >
+                                  <Reply className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    handleDeleteMessage(message._id);
+                                    closeMenu();
+                                  }}
+                                  className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-zinc-700 flex items-center justify-center"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         {/* Message Bubble */}
                         <div
                           className={`max-w-[75%] sm:max-w-xs lg:max-w-md px-4 py-3 rounded-lg ${
@@ -509,61 +564,6 @@ const ChatPg = () => {
                           })}
                         </p>
                       </div>
-                      
-                      {/* 3-Dot Menu - Show on hover, only for own messages */}
-                      {isMyMessage && (
-                        <div className="relative message-menu">
-                          {/* 3-Dot Button - Show on hover */}
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => toggleMenu(message._id)}
-                            className={`h-8 w-8 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-opacity duration-200 ${
-                              hoveredMessageId === message._id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                            }`}
-                            title="More options"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                          
-                          {/* Dropdown Menu */}
-                          {openMenuId === message._id && (
-                            <div className="absolute right-0 top-10 z-50 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg py-1 min-w-[120px]">
-                              <button
-                                onClick={() => {
-                                  setEditingMessageId(message._id);
-                                  setEditedMessage(message.message || "");
-                                  closeMenu();
-                                }}
-                                className="w-full px-3 py-2 text-left text-sm text-white hover:bg-zinc-700 flex items-center gap-2"
-                              >
-                                <Edit className="h-4 w-4" />
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => {
-                                  handleReplyToMessage(message);
-                                  closeMenu();
-                                }}
-                                className="w-full px-3 py-2 text-left text-sm text-white hover:bg-zinc-700 flex items-center gap-2"
-                              >
-                                <Reply className="h-4 w-4" />
-                                Reply
-                              </button>
-                              <button
-                                onClick={() => {
-                                  handleDeleteMessage(message._id);
-                                  closeMenu();
-                                }}
-                                className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-zinc-700 flex items-center gap-2"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                                Delete
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
                       </div>
                     </div>
                   );
