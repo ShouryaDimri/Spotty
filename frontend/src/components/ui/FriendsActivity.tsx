@@ -28,7 +28,7 @@ const FriendsActivity = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<Map<string, OnlineUser>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
     // Only initialize socket in development (Socket.io not available in Vercel serverless)
@@ -170,17 +170,6 @@ const FriendsActivity = () => {
     }
   };
 
-  const getStatusColor = (status: 'online' | 'idle' | 'offline') => {
-    switch (status) {
-      case 'online':
-        return 'bg-green-500';
-      case 'idle':
-        return 'bg-yellow-500';
-      case 'offline':
-      default:
-        return 'bg-gray-500';
-    }
-  };
 
   const getStatusText = (status: 'online' | 'idle' | 'offline', lastSeen?: Date) => {
     switch (status) {

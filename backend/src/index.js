@@ -51,9 +51,24 @@ if (process.env.NOW_REGION) {
   });
 }
 
-// Configure CORS to allow all origins in production (Vercel creates many preview URLs)
+// Configure CORS for production
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://spotty-kohl.vercel.app",
+  "https://spotty-git-master-shouryadimris-projects.vercel.app"
+];
+
 app.use(cors({
-  origin: true, // Allow all origins temporarily for debugging
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin) || origin.includes('vercel.app')) {
+      return callback(null, true);
+    }
+    
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],

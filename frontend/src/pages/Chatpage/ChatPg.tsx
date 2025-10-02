@@ -3,7 +3,7 @@ import { useUser } from "@clerk/clerk-react";
 import { axiosInstance } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Loader, Paperclip, X, Download, Image, FileText, Music, Video, MoreVertical, Edit, Trash2, Reply, ChevronDown } from "lucide-react";
+import { Send, Loader, Paperclip, X, Download, Image, FileText, Music, Video, MoreVertical, Edit, Trash2, Reply } from "lucide-react";
 import { io, Socket } from "socket.io-client";
 
 interface User {
@@ -245,9 +245,7 @@ const ChatPg = () => {
 
   const handleDeleteMessage = async (messageId: string) => {
     try {
-      console.log('🗑️ Deleting message:', messageId);
-      const response = await axiosInstance.delete(`/messages/${messageId}`);
-      console.log('✅ Message deleted successfully:', response.data);
+      await axiosInstance.delete(`/messages/${messageId}`);
       setMessages(prev => prev.filter(msg => msg._id !== messageId));
       if (socket) {
         socket.emit("delete_message", { messageId, receiverId: selectedUser?.clerkId });
@@ -260,11 +258,9 @@ const ChatPg = () => {
   const handleEditMessage = async (messageId: string) => {
     if (!editedMessage.trim()) return;
     try {
-      console.log('📝 Editing message:', { messageId, message: editedMessage.trim() });
       const response = await axiosInstance.put(`/messages/${messageId}`, {
         message: editedMessage.trim()
       });
-      console.log('✅ Message edited successfully:', response.data);
       setMessages(prev => prev.map(msg => 
         msg._id === messageId ? { ...msg, message: response.data.message } : msg
       ));

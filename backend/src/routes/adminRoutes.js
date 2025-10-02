@@ -5,18 +5,16 @@ import { Song } from "../models/songModel.js";
 
 const router = Router();
 
-// Temporarily disable all auth checks for testing
-// router.use(protectRoute, requireAdmin);
-// router.use(protectRoute);
-
-// All routes are now public for testing
+// Admin routes (require admin access)
 router.get("/health", healthCheck);
-router.get("/check" , checkAdmin);
-router.post("/test-upload", testUpload);
-router.post("/upload-song", createSong); // Regular users can upload songs
-router.post("/songs", createSong );
-router.post("/albums", createAlbum );
-router.delete("/songs/:id", deleteSong);
-router.delete("/albums/:id", deleteAlbum);
+router.get("/check", checkAdmin);
+router.post("/songs", protectRoute, requireAdmin, createSong);
+router.post("/albums", protectRoute, requireAdmin, createAlbum);
+router.delete("/songs/:id", protectRoute, requireAdmin, deleteSong);
+router.delete("/albums/:id", protectRoute, requireAdmin, deleteAlbum);
+
+// Public routes (all authenticated users can access)
+router.post("/test-upload", protectRoute, testUpload);
+router.post("/upload-song", protectRoute, createSong); // Regular users can upload songs
 
 export default router;

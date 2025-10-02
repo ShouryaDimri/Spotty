@@ -23,8 +23,17 @@ const Topbar = () => {
     const { user } = useUser();
 
     useEffect(() => {
-        // Allow all authenticated users to upload songs
-        setIsAdmin(true);
+        const checkAdminStatus = async () => {
+            try {
+                const response = await axiosInstance.get("/admin/check");
+                setIsAdmin(response.data.admin || false);
+            } catch (error) {
+                // If admin check fails, still allow upload for regular users
+                setIsAdmin(true);
+            }
+        };
+
+        checkAdminStatus();
     }, []);
 
     useEffect(() => {
@@ -105,18 +114,6 @@ const Topbar = () => {
             }
             formData.append('duration', '0'); // Will be calculated on server
 
-            console.log('🎵 Uploading song:', {
-                title: uploadForm.title,
-                artist: uploadForm.artist,
-                audioFile: uploadForm.audioFile?.name,
-                imageFile: uploadForm.imageFile?.name,
-                audioFileSize: uploadForm.audioFile?.size,
-                imageFileSize: uploadForm.imageFile?.size
-            });
-
-            // Check if we have authentication token
-            const token = localStorage.getItem('__clerk_db_jwt');
-            console.log('🔑 Auth token available:', !!token);
 
             const response = await axiosInstance.post('/admin/upload-song', formData, {
                 headers: {
@@ -125,7 +122,6 @@ const Topbar = () => {
                 timeout: 60000, // 60 seconds timeout for file uploads
             });
 
-            console.log('✅ Song uploaded successfully:', response.data);
             alert('Song uploaded successfully!');
             
             // Reset form
@@ -137,18 +133,7 @@ const Topbar = () => {
             });
             setShowUpload(false);
         } catch (error: any) {
-            console.error('❌ Error uploading song:', error);
-            console.error('📊 Error details:', {
-                message: error.message,
-                status: error.response?.status,
-                statusText: error.response?.statusText,
-                data: error.response?.data,
-                config: {
-                    url: error.config?.url,
-                    method: error.config?.method,
-                    headers: error.config?.headers
-                }
-            });
+            console.error('Error uploading song:', error);
             
             let errorMessage = 'Unknown error occurred';
             
