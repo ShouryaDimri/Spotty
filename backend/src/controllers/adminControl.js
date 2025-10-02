@@ -140,4 +140,25 @@ export const deleteAlbum = async (req, res) => {
 };
 
 export const checkAdmin = async (req, res) => {
-    res.status(200).json({admin: true}); };
+    res.status(200).json({admin: true}); 
+};
+
+export const testUpload = async (req, res) => {
+    try {
+        console.log("🧪 Test upload endpoint hit");
+        console.log("📊 Request body:", req.body);
+        console.log("📁 Request files:", req.files);
+        console.log("📋 Headers:", req.headers);
+        
+        res.status(200).json({
+            message: "Test upload endpoint working",
+            hasFiles: !!req.files,
+            fileCount: req.files ? Object.keys(req.files).length : 0,
+            bodyKeys: Object.keys(req.body),
+            contentType: req.headers['content-type']
+        });
+    } catch (error) {
+        console.error("❌ Test upload error:", error);
+        res.status(500).json({ error: error.message });
+    }
+};

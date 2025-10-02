@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { protectRoute, requireAdmin } from "../middleware/authMiddleware.js";
-import { createSong, deleteSong, createAlbum, deleteAlbum, checkAdmin } from "../controllers/adminControl.js";
+import { createSong, deleteSong, createAlbum, deleteAlbum, checkAdmin, testUpload } from "../controllers/adminControl.js";
 import { Song } from "../models/songModel.js";
 
 const router = Router();
@@ -11,6 +11,7 @@ router.use(protectRoute);
 
 router.get("/check" , checkAdmin);
 
+router.post("/test-upload", testUpload);
 router.post("/songs", createSong );
 router.post("/albums", createAlbum );
 

@@ -74,6 +74,30 @@ const Topbar = () => {
         }
     };
 
+    const testUpload = async () => {
+        try {
+            console.log('🧪 Testing upload endpoint...');
+            
+            const formData = new FormData();
+            formData.append('title', 'Test Song');
+            formData.append('artist', 'Test Artist');
+            formData.append('test', 'true');
+
+            const response = await axiosInstance.post('/admin/test-upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                timeout: 10000,
+            });
+
+            console.log('✅ Test upload successful:', response.data);
+            alert('Test upload successful! Check console for details.');
+        } catch (error: any) {
+            console.error('❌ Test upload failed:', error);
+            alert(`Test upload failed: ${error.message}`);
+        }
+    };
+
     const handleUploadSubmit = async () => {
         if (!uploadForm.title || !uploadForm.artist || !uploadForm.audioFile) {
             alert('Please fill in all required fields');
@@ -414,6 +438,13 @@ const Topbar = () => {
                                 className="flex-1 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors"
                             >
                                 Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={testUpload}
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+                            >
+                                Test Upload
                             </button>
                             <button
                                 type="submit"
