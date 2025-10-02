@@ -23,19 +23,8 @@ const Topbar = () => {
     const { user } = useUser();
 
     useEffect(() => {
-        const checkAdminStatus = async () => {
-            try {
-                const response = await axiosInstance.get("/admin/check");
-                console.log("Admin check response:", response.data);
-                setIsAdmin(true);
-            } catch (error) {
-                console.error("Admin check failed:", error);
-                // For now, allow all users to upload (temporary fix)
-                setIsAdmin(true);
-            }
-        };
-
-        checkAdminStatus();
+        // Allow all authenticated users to upload songs
+        setIsAdmin(true);
     }, []);
 
     useEffect(() => {
@@ -129,7 +118,7 @@ const Topbar = () => {
             const token = localStorage.getItem('__clerk_db_jwt');
             console.log('🔑 Auth token available:', !!token);
 
-            const response = await axiosInstance.post('/admin/songs', formData, {
+            const response = await axiosInstance.post('/admin/upload-song', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },

@@ -57,21 +57,14 @@ export const getFeaturedSongs = async(req, res) => {
             }
         ];
 
-        // Try to fetch from database first
-        const dbSongs = await Song.aggregate([
-            { $sample: { size: 1 } },
-            { $project: {
-                _id: 1,
-                title: 1,
-                artist: 1,
-                imageUrl: 1,
-                audioUrl: 1,
-                duration: 1
-            }}
-        ]);
+        // Try to fetch from database first - get newest uploaded songs
+        const dbSongs = await Song.find({})
+            .select('_id title artist imageUrl audioUrl duration')
+            .limit(6)
+            .sort({ createdAt: -1 }); // Get newest songs first
 
-        // Combine dummy songs with database songs (prioritize dummy songs)
-        const allSongs = [...dummySongs, ...dbSongs].slice(0, 3);
+        // Combine real songs with dummy songs (prioritize real songs)
+        const allSongs = [...dbSongs, ...dummySongs].slice(0, 6);
         res.status(200).json(allSongs);    
     } catch (error) {
         console.error("Error fetching featured songs:", error);
@@ -120,21 +113,14 @@ export const getTrendingSongs = async(req, res) => {
             }
         ];
 
-        // Try to fetch from database first
-        const dbSongs = await Song.aggregate([
-            { $sample: { size: 0 } }, // Get 0 from DB since we want only dummy songs
-            { $project: {
-                _id: 1,
-                title: 1,
-                artist: 1,
-                imageUrl: 1,
-                audioUrl: 1,
-                duration: 1
-            }}
-        ]);
+        // Try to fetch from database first - get uploaded songs
+        const dbSongs = await Song.find({})
+            .select('_id title artist imageUrl audioUrl duration')
+            .limit(4)
+            .sort({ createdAt: -1 }); // Get newest songs first
 
-        // Combine dummy songs with database songs (prioritize dummy songs)
-        const allSongs = [...dummySongs, ...dbSongs].slice(0, 4);
+        // Combine real songs with dummy songs (prioritize real songs)
+        const allSongs = [...dbSongs, ...dummySongs].slice(0, 4);
         res.status(200).json(allSongs);    
     } catch (error) {
         console.error("Error fetching trending songs:", error);

@@ -5,22 +5,22 @@ import { Song } from "../models/songModel.js";
 
 const router = Router();
 
-// Temporarily disable all auth checks for testing
-// router.use(protectRoute);
-// router.use(protectRoute, requireAdmin);
-
+// Admin routes (require admin access)
+router.use(protectRoute, requireAdmin);
 router.get("/check" , checkAdmin);
-
-router.post("/test-upload", testUpload);
 router.post("/songs", createSong );
 router.post("/albums", createAlbum );
+router.delete("/songs/:id", deleteSong);
+router.delete("/albums/:id", deleteAlbum);
 
-// Add simple test endpoints instead
-router.delete("/songs/test", (req, res) => {
-  res.status(200).json({ message: "Test song delete endpoint working" });
-});
-router.delete("/albums/test", (req, res) => {
-  res.status(200).json({ message: "Test album delete endpoint working" });
-});
+// Public routes (all authenticated users can access)
+const publicRouter = Router();
+publicRouter.use(protectRoute); // Only require authentication, not admin
+
+publicRouter.post("/test-upload", testUpload);
+publicRouter.post("/upload-song", createSong); // Regular users can upload songs
+
+// Use both routers
+router.use(publicRouter);
 
 export default router;
