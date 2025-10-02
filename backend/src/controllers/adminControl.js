@@ -155,10 +155,19 @@ export const testUpload = async (req, res) => {
             hasFiles: !!req.files,
             fileCount: req.files ? Object.keys(req.files).length : 0,
             bodyKeys: Object.keys(req.body),
-            contentType: req.headers['content-type']
+            contentType: req.headers['content-type'],
+            timestamp: new Date().toISOString()
         });
     } catch (error) {
         console.error("❌ Test upload error:", error);
         res.status(500).json({ error: error.message });
     }
+};
+
+export const healthCheck = async (req, res) => {
+    res.status(200).json({
+        status: "OK",
+        message: "Upload service is working",
+        timestamp: new Date().toISOString()
+    });
 };

@@ -32,14 +32,16 @@ axiosInstance.interceptors.request.use(
     async (config: any) => {
         // Try to get a fresh token before each request
         try {
-            const { getToken } = await import('@clerk/clerk-react');
-            const token = await getToken();
+            // Get token from Clerk directly
+            const token = await window.Clerk?.session?.getToken();
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
                 console.log('🔑 Fresh token attached to request');
+            } else {
+                console.log('⚠️ No token available for request');
             }
         } catch (error) {
-            console.log('⚠️ Could not refresh token for request');
+            console.log('⚠️ Could not refresh token for request:', error);
         }
         return config;
     },
