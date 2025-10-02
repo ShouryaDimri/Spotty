@@ -245,22 +245,26 @@ const ChatPg = () => {
 
   const handleDeleteMessage = async (messageId: string) => {
     try {
-      await axiosInstance.delete(`/messages/${messageId}`);
+      console.log('🗑️ Deleting message:', messageId);
+      const response = await axiosInstance.delete(`/messages/${messageId}`);
+      console.log('✅ Message deleted successfully:', response.data);
       setMessages(prev => prev.filter(msg => msg._id !== messageId));
       if (socket) {
         socket.emit("delete_message", { messageId, receiverId: selectedUser?.clerkId });
       }
     } catch (error) {
-      console.error("Error deleting message:", error);
+      console.error("❌ Error deleting message:", error);
     }
   };
 
   const handleEditMessage = async (messageId: string) => {
     if (!editedMessage.trim()) return;
     try {
+      console.log('📝 Editing message:', { messageId, message: editedMessage.trim() });
       const response = await axiosInstance.put(`/messages/${messageId}`, {
         message: editedMessage.trim()
       });
+      console.log('✅ Message edited successfully:', response.data);
       setMessages(prev => prev.map(msg => 
         msg._id === messageId ? { ...msg, message: response.data.message } : msg
       ));
@@ -274,7 +278,7 @@ const ChatPg = () => {
       setEditingMessageId(null);
       setEditedMessage("");
     } catch (error) {
-      console.error("Error editing message:", error);
+      console.error("❌ Error editing message:", error);
     }
   };
 
