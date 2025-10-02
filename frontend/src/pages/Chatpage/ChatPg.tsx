@@ -49,7 +49,7 @@ const ChatPg = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Only initialize socket in development (Socket.io not available in Vercel serverless)
+    // Initialize socket in development
     if (import.meta.env.DEV) {
       const SOCKET_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || "http://localhost:5137";
       const newSocket = io(SOCKET_URL);
@@ -79,8 +79,19 @@ const ChatPg = () => {
       return () => {
         newSocket.close();
       };
+    } else {
+      // In production, use polling for real-time updates
+      const pollInterval = setInterval(() => {
+        if (selectedUser) {
+          fetchMessages(selectedUser.clerkId);
+        }
+      }, 2000); // Poll every 2 seconds
+
+      return () => {
+        clearInterval(pollInterval);
+      };
     }
-  }, [user?.id]);
+  }, [user?.id, selectedUser]);
 
   useEffect(() => {
     fetchUsers();

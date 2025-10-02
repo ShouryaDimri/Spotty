@@ -113,6 +113,15 @@ const FriendsActivity = () => {
         });
         newSocket.close();
       };
+    } else {
+      // In production, use polling for online status updates
+      const pollInterval = setInterval(() => {
+        fetchOnlineUsers();
+      }, 3000); // Poll every 3 seconds
+
+      return () => {
+        clearInterval(pollInterval);
+      };
     }
   }, [user?.id]);
 
@@ -128,6 +137,25 @@ const FriendsActivity = () => {
       console.error("Error fetching users:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchOnlineUsers = async () => {
+    try {
+      // For now, simulate online users by marking all users as online
+      // In a real implementation, you'd have an API endpoint for online users
+      const onlineUsersMap = new Map();
+      users.forEach(user => {
+        onlineUsersMap.set(user.clerkId, {
+          userId: user.clerkId,
+          status: 'online' as const,
+          lastSeen: new Date(),
+          currentSong: null
+        });
+      });
+      setOnlineUsers(onlineUsersMap);
+    } catch (error) {
+      console.error("Error fetching online users:", error);
     }
   };
 
