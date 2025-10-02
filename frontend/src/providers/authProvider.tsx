@@ -21,6 +21,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 				updateApiToken(token);
 				// Set user ID in player store for song sharing
 				setUserId(userId || null);
+				console.log('✅ Auth token set successfully');
 			} catch (error: any) {
 				updateApiToken(null);
 				setUserId(null);
@@ -30,7 +31,12 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 			}
 		};
 
-		initAuth();
+		// Only initialize auth if we have a user
+		if (userId) {
+			initAuth();
+		} else {
+			setLoading(false);
+		}
 
 	}, [getToken, userId, setUserId]);
 

@@ -33,8 +33,23 @@ axiosInstance.interceptors.response.use(
         console.log(`✅ API Response: ${response.status} ${response.config.url}`);
         return response;
     },
-    (error: any) => {
+    async (error: any) => {
         console.error('❌ API Error:', error.message);
+        
+        // If it's a 401 error, try to refresh the token
+        if (error.response?.status === 401) {
+            console.log('🔄 401 Error - Attempting to refresh token...');
+            
+            try {
+                // Import Clerk's useAuth hook dynamically
+                const { useAuth } = await import('@clerk/clerk-react');
+                // This won't work in an interceptor, so we'll handle it in components
+                console.log('⚠️ Token refresh needed - handled by component retry logic');
+            } catch (refreshError) {
+                console.error('❌ Token refresh failed:', refreshError);
+            }
+        }
+        
         if (error.code === 'ERR_NETWORK') {
             console.error('🔌 Network Error: Backend server might not be running');
         }

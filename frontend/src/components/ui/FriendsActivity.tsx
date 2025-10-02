@@ -129,14 +129,25 @@ const FriendsActivity = () => {
     fetchUsers();
   }, []);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (retryCount = 0) => {
     try {
       const response = await axiosInstance.get("/users");
       setUsers(response.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching users:", error);
+      
+      // If it's a 401 error and we haven't retried too many times, wait and retry
+      if (error.response?.status === 401 && retryCount < 3) {
+        console.log(`Retrying fetchUsers in 2 seconds... (attempt ${retryCount + 1})`);
+        setTimeout(() => {
+          fetchUsers(retryCount + 1);
+        }, 2000);
+        return;
+      }
     } finally {
-      setIsLoading(false);
+      if (retryCount === 0) {
+        setIsLoading(false);
+      }
     }
   };
 
