@@ -61,14 +61,23 @@ app.use(express.json()); // to parse JSON bodies
 app.use(clerkMiddleware());
 app.use(fileupload({
   useTempFiles: true,
-  tempFileDir: path.join(__dirname, 'tmp'),
+  tempFileDir: process.env.NOW_REGION ? '/tmp' : path.join(__dirname, 'tmp'),
   createParentPath: true,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit  
+  limits: { 
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+    files: 2 // Maximum 2 files (audio + image)
+  }
 }));
 
 // Debug middleware to log all incoming requests
 app.use((req, res, next) => {
   console.log(`📥 ${req.method} ${req.path}`);
+  console.log(`📊 Headers:`, req.headers);
+  if (req.method === 'POST' && req.path.includes('/admin/songs')) {
+    console.log(`🎵 Song upload request detected`);
+    console.log(`📁 Content-Type:`, req.headers['content-type']);
+    console.log(`📏 Content-Length:`, req.headers['content-length']);
+  }
   next();
 });
 

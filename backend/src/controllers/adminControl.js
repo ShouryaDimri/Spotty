@@ -22,13 +22,18 @@ export const createSong = async (req, res) => {
         artist: req.body.artist,
         hasAudioFile: !!req.files?.audioFile,
         hasImageFile: !!req.files?.imageFile,
-        files: req.files ? Object.keys(req.files) : 'No files'
+        files: req.files ? Object.keys(req.files) : 'No files',
+        bodyKeys: Object.keys(req.body),
+        fileKeys: req.files ? Object.keys(req.files) : 'No files object'
     });
 
     // Ensure database connection in serverless environment
     await connectDB();
     
     if (!req.files || !req.files.audioFile) {
+      console.log("❌ No audio file found in request");
+      console.log("Request files:", req.files);
+      console.log("Request body:", req.body);
       return res.status(400).json({ message: "Audio file is required" });
     }
     const { title, artist, albumId, duration } = req.body;
