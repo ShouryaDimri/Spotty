@@ -330,7 +330,7 @@ const ChatPg = () => {
         </div>
         
         <ScrollArea className="h-[calc(100vh-160px)]">
-          <div className="space-y-2 p-2">
+          <div className="flex flex-wrap gap-2 p-2">
             {users.map((chatUser) => (
               <div
                 key={chatUser._id}
@@ -338,22 +338,30 @@ const ChatPg = () => {
                   setSelectedUser(chatUser);
                   setShowUsersList(false); // Hide user list on mobile when selecting a user
                 }}
-                className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors 
-                  ${selectedUser?._id === chatUser._id 
-                    ? 'bg-zinc-700' 
-                    : 'hover:bg-zinc-800'
-                  }`}
+                className={`relative group cursor-pointer transition-all duration-300 ${
+                  selectedUser?._id === chatUser._id 
+                    ? 'scale-110' 
+                    : 'hover:scale-105'
+                }`}
+                title={chatUser.fullName}
               >
-                <img
-                  src={chatUser.imageUrl}
-                  alt={chatUser.fullName}
-                  className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                />
-                <div className={`flex-1 min-w-0 transition-opacity duration-300 ${
-                  isHovered ? 'opacity-100' : 'opacity-0'
+                <div className={`relative w-8 h-8 rounded-full overflow-hidden border-2 transition-all duration-300 ${
+                  selectedUser?._id === chatUser._id 
+                    ? 'border-green-400 shadow-lg shadow-green-400/50' 
+                    : 'border-zinc-600 hover:border-zinc-400'
                 }`}>
-                  <p className="text-white font-medium truncate">{chatUser.fullName}</p>
-                  <p className="text-zinc-400 text-sm">Click to chat</p>
+                  <img
+                    src={chatUser.imageUrl}
+                    alt={chatUser.fullName}
+                    className="w-full h-full object-cover"
+                  />
+                  {selectedUser?._id === chatUser._id && (
+                    <div className="absolute inset-0 bg-green-400/20 rounded-full" />
+                  )}
+                </div>
+                {/* Tooltip on hover */}
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-zinc-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+                  {chatUser.fullName}
                 </div>
               </div>
             ))}
