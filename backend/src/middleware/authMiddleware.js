@@ -10,8 +10,16 @@ export const protectRoute = async (req, res, next) => {
 
 export const requireAdmin = async (req, res, next) => {
     try {
+        console.log("🔐 Checking admin status for user:", req.auth.userId);
         const currUser = await clerkClient.users.getUser(req.auth.userId);
-        const isAdmin = process.env.ADMIN_EMAIL === currUser.primaryEmailAddress?.emailAddress;
+        const userEmail = currUser.primaryEmailAddress?.emailAddress;
+        const adminEmail = process.env.ADMIN_EMAIL;
+        
+        console.log("📧 User email:", userEmail);
+        console.log("👑 Admin email:", adminEmail);
+        
+        const isAdmin = adminEmail === userEmail;
+        console.log("✅ Is admin:", isAdmin);
 
         if (!isAdmin) {
             return res.status(403).json({ message: "Forbidden: Admins only" });
@@ -19,6 +27,7 @@ export const requireAdmin = async (req, res, next) => {
 
         next();
     } catch (error) {
+        console.error("❌ Admin check error:", error);
         return res.status(500).json({ message: "Server error" });
     }
 }

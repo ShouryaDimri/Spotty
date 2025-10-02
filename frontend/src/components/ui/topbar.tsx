@@ -89,6 +89,13 @@ const Topbar = () => {
             }
             formData.append('duration', '0'); // Will be calculated on server
 
+            console.log('Uploading song:', {
+                title: uploadForm.title,
+                artist: uploadForm.artist,
+                audioFile: uploadForm.audioFile?.name,
+                imageFile: uploadForm.imageFile?.name
+            });
+
             const response = await axiosInstance.post('/admin/songs', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
@@ -106,9 +113,13 @@ const Topbar = () => {
                 imageFile: null
             });
             setShowUpload(false);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error uploading song:', error);
-            alert('Error uploading song. Please try again.');
+            console.error('Error response:', error.response?.data);
+            console.error('Error status:', error.response?.status);
+            
+            const errorMessage = error.response?.data?.message || error.message || 'Unknown error occurred';
+            alert(`Error uploading song: ${errorMessage}`);
         } finally {
             setIsUploading(false);
         }

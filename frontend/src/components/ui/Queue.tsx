@@ -49,7 +49,7 @@ const Queue = ({ isOpen, onClose }: QueueProps) => {
         <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 via-transparent to-purple-500/5 pointer-events-none rounded-xl" />
       
       {/* Header */}
-      <div className="relative flex items-center justify-between p-4 border-b border-zinc-700/50">
+      <div className="relative flex items-center justify-between p-4">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full animate-pulse" />
           <h3 className="text-white font-semibold bg-gradient-to-r from-white to-zinc-300 bg-clip-text text-transparent">

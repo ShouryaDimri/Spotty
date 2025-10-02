@@ -17,6 +17,14 @@ const uploadToCloudinary = async (file) => {
 
 export const createSong = async (req, res) => {
    try {
+    console.log("🎵 Creating song with data:", {
+        title: req.body.title,
+        artist: req.body.artist,
+        hasAudioFile: !!req.files?.audioFile,
+        hasImageFile: !!req.files?.imageFile,
+        files: req.files ? Object.keys(req.files) : 'No files'
+    });
+
     // Ensure database connection in serverless environment
     await connectDB();
     
@@ -27,6 +35,7 @@ export const createSong = async (req, res) => {
     const audioFile = req.files.audioFile;
     const imageFile = req.files.imageFile;
 
+    console.log("📤 Uploading to Cloudinary...");
     const audioUrl = await uploadToCloudinary(audioFile);
     let imageUrl = '/cover-images/1.jpg'; // Default image
     
@@ -34,6 +43,7 @@ export const createSong = async (req, res) => {
         imageUrl = await uploadToCloudinary(imageFile);
     }
     
+    console.log("💾 Saving song to database...");
     const song = new Song({
         title,
         artist,
@@ -49,10 +59,12 @@ export const createSong = async (req, res) => {
             $push: {songs: song._id},
         });
     }
+    
+    console.log("✅ Song created successfully:", song._id);
     res.status(201).json(song);
   } catch (error) {
-    console.error("Error creating song:", error);
-    res.status(500).json({ message: "Server error", error });
+    console.error("❌ Error creating song:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
  }
 
 };
