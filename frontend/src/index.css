@@ -162,6 +162,7 @@
   position: fixed !important;
   bottom: 6rem !important;
   right: 1rem !important;
+  border: none !important;
 }
 
 .queue-backdrop {

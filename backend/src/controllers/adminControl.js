@@ -20,22 +20,27 @@ export const createSong = async (req, res) => {
     // Ensure database connection in serverless environment
     await connectDB();
     
-    if (!req.files || !req.files.audioFile || !req.files.imageFile) {
-      return res.status(400).json({ message: "Audio file and image file are required" });
+    if (!req.files || !req.files.audioFile) {
+      return res.status(400).json({ message: "Audio file is required" });
     }
     const { title, artist, albumId, duration } = req.body;
     const audioFile = req.files.audioFile;
     const imageFile = req.files.imageFile;
 
     const audioUrl = await uploadToCloudinary(audioFile);
-    const imageUrl = await uploadToCloudinary(imageFile);
+    let imageUrl = '/cover-images/1.jpg'; // Default image
+    
+    if (imageFile) {
+        imageUrl = await uploadToCloudinary(imageFile);
+    }
+    
     const song = new Song({
         title,
         artist,
         audioUrl,
         imageUrl,
         albumId: albumId || null,
-        duration,
+        duration: duration || 0,
     });
     await song.save()
 

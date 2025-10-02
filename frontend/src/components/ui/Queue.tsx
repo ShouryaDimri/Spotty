@@ -42,7 +42,7 @@ const Queue = ({ isOpen, onClose }: QueueProps) => {
       
       {/* Queue Panel */}
       <div 
-        className="queue-panel fixed bottom-24 right-4 w-80 md:w-96 h-80 md:h-96 bg-gradient-to-b from-zinc-900 via-zinc-800 to-zinc-900 rounded-xl border border-zinc-700/50 shadow-2xl"
+        className="queue-panel fixed bottom-24 right-4 w-80 md:w-96 h-80 md:h-96 bg-gradient-to-b from-zinc-900 via-zinc-800 to-zinc-900 rounded-xl shadow-2xl"
         style={{ zIndex: 999999 }}
       >
         {/* Gradient overlay */}

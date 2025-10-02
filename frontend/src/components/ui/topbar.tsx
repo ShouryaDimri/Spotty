@@ -13,6 +13,13 @@ const Topbar = () => {
     const [showUpload, setShowUpload] = useState(false);
     const [profileForm, setProfileForm] = useState({ firstName: '', lastName: '' });
     const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+    const [uploadForm, setUploadForm] = useState({
+        title: '',
+        artist: '',
+        audioFile: null as File | null,
+        imageFile: null as File | null
+    });
+    const [isUploading, setIsUploading] = useState(false);
     const { user } = useUser();
 
     useEffect(() => {
@@ -61,6 +68,49 @@ const Topbar = () => {
             alert('Error updating profile. Please try again.');
         } finally {
             setIsUpdatingProfile(false);
+        }
+    };
+
+    const handleUploadSubmit = async () => {
+        if (!uploadForm.title || !uploadForm.artist || !uploadForm.audioFile) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        try {
+            setIsUploading(true);
+            
+            const formData = new FormData();
+            formData.append('title', uploadForm.title);
+            formData.append('artist', uploadForm.artist);
+            formData.append('audioFile', uploadForm.audioFile);
+            if (uploadForm.imageFile) {
+                formData.append('imageFile', uploadForm.imageFile);
+            }
+            formData.append('duration', '0'); // Will be calculated on server
+
+            const response = await axiosInstance.post('/admin/songs', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            console.log('Song uploaded successfully:', response.data);
+            alert('Song uploaded successfully!');
+            
+            // Reset form
+            setUploadForm({
+                title: '',
+                artist: '',
+                audioFile: null,
+                imageFile: null
+            });
+            setShowUpload(false);
+        } catch (error) {
+            console.error('Error uploading song:', error);
+            alert('Error uploading song. Please try again.');
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -270,29 +320,37 @@ const Topbar = () => {
                             <X className="w-5 h-5" />
                         </button>
                     </div>
-                    <div className="space-y-4">
+                    <form onSubmit={(e) => { e.preventDefault(); handleUploadSubmit(); }} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-zinc-300 mb-2">Song Title</label>
+                            <label className="block text-sm font-medium text-zinc-300 mb-2">Song Title *</label>
                             <input
                                 type="text"
+                                value={uploadForm.title}
+                                onChange={(e) => setUploadForm(prev => ({ ...prev, title: e.target.value }))}
                                 className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded text-white"
                                 placeholder="Enter song title"
+                                required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-zinc-300 mb-2">Artist Name</label>
+                            <label className="block text-sm font-medium text-zinc-300 mb-2">Artist Name *</label>
                             <input
                                 type="text"
+                                value={uploadForm.artist}
+                                onChange={(e) => setUploadForm(prev => ({ ...prev, artist: e.target.value }))}
                                 className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded text-white"
                                 placeholder="Enter artist name"
+                                required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-zinc-300 mb-2">Audio File</label>
+                            <label className="block text-sm font-medium text-zinc-300 mb-2">Audio File *</label>
                             <input
                                 type="file"
                                 accept="audio/*"
+                                onChange={(e) => setUploadForm(prev => ({ ...prev, audioFile: e.target.files?.[0] || null }))}
                                 className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded text-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-green-600 file:text-white"
+                                required
                             />
                         </div>
                         <div>
@@ -300,24 +358,27 @@ const Topbar = () => {
                             <input
                                 type="file"
                                 accept="image/*"
+                                onChange={(e) => setUploadForm(prev => ({ ...prev, imageFile: e.target.files?.[0] || null }))}
                                 className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded text-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-green-600 file:text-white"
                             />
                         </div>
                         <div className="flex gap-3">
                             <button
+                                type="button"
                                 onClick={() => setShowUpload(false)}
                                 className="flex-1 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
-                                onClick={() => setShowUpload(false)}
-                                className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors"
+                                type="submit"
+                                disabled={isUploading}
+                                className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Upload Song
+                                {isUploading ? 'Uploading...' : 'Upload Song'}
                             </button>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         )}
