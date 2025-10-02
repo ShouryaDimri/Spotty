@@ -330,7 +330,7 @@ const ChatPg = () => {
         </div>
         
         <ScrollArea className="h-[calc(100vh-160px)]">
-          <div className="flex flex-wrap gap-2 p-2">
+          <div className="flex flex-col items-center gap-3 p-4">
             {users.map((chatUser) => (
               <div
                 key={chatUser._id}
@@ -340,12 +340,12 @@ const ChatPg = () => {
                 }}
                 className={`relative group cursor-pointer transition-all duration-300 ${
                   selectedUser?._id === chatUser._id 
-                    ? 'scale-110' 
-                    : 'hover:scale-105'
+                    ? 'scale-105' 
+                    : 'hover:scale-102'
                 }`}
                 title={chatUser.fullName}
               >
-                <div className={`relative w-8 h-8 rounded-full overflow-hidden border-2 transition-all duration-300 ${
+                <div className={`relative w-10 h-10 rounded-full overflow-hidden border-2 transition-all duration-300 ${
                   selectedUser?._id === chatUser._id 
                     ? 'border-green-400 shadow-lg shadow-green-400/50' 
                     : 'border-zinc-600 hover:border-zinc-400'
@@ -360,7 +360,7 @@ const ChatPg = () => {
                   )}
                 </div>
                 {/* Tooltip on hover */}
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-zinc-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+                <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-3 px-2 py-1 bg-zinc-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
                   {chatUser.fullName}
                 </div>
               </div>
