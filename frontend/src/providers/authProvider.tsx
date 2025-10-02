@@ -17,27 +17,24 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	useEffect(() => {
 		const initAuth = async () => {
 			try {
+				console.log('🔑 Getting auth token...');
 				const token = await getToken();
+				console.log('🔑 Token received:', !!token);
 				updateApiToken(token);
 				// Set user ID in player store for song sharing
 				setUserId(userId || null);
 				console.log('✅ Auth token set successfully');
 			} catch (error: any) {
+				console.error('❌ Auth token error:', error);
 				updateApiToken(null);
 				setUserId(null);
-				console.log("Error in auth provider", error);
 			} finally {
 				setLoading(false);
 			}
 		};
 
-		// Only initialize auth if we have a user
-		if (userId) {
-			initAuth();
-		} else {
-			setLoading(false);
-		}
-
+		// Always try to initialize auth, even without userId
+		initAuth();
 	}, [getToken, userId, setUserId]);
 
 	if (loading) {

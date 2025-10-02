@@ -27,6 +27,27 @@ axiosInstance.interceptors.request.use(
     }
 );
 
+// Add request interceptor to ensure token is fresh
+axiosInstance.interceptors.request.use(
+    async (config: any) => {
+        // Try to get a fresh token before each request
+        try {
+            const { getToken } = await import('@clerk/clerk-react');
+            const token = await getToken();
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+                console.log('🔑 Fresh token attached to request');
+            }
+        } catch (error) {
+            console.log('⚠️ Could not refresh token for request');
+        }
+        return config;
+    },
+    (error: any) => {
+        return Promise.reject(error);
+    }
+);
+
 // Add response interceptor for error handling
 axiosInstance.interceptors.response.use(
     (response: any) => {
