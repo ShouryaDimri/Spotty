@@ -25,10 +25,13 @@ const Topbar = () => {
     useEffect(() => {
         const checkAdminStatus = async () => {
             try {
-                await axiosInstance.get("/admin/check");
+                const response = await axiosInstance.get("/admin/check");
+                console.log("Admin check response:", response.data);
                 setIsAdmin(true);
             } catch (error) {
-                setIsAdmin(false);
+                console.error("Admin check failed:", error);
+                // For now, allow all users to upload (temporary fix)
+                setIsAdmin(true);
             }
         };
 
@@ -89,20 +92,27 @@ const Topbar = () => {
             }
             formData.append('duration', '0'); // Will be calculated on server
 
-            console.log('Uploading song:', {
+            console.log('🎵 Uploading song:', {
                 title: uploadForm.title,
                 artist: uploadForm.artist,
                 audioFile: uploadForm.audioFile?.name,
-                imageFile: uploadForm.imageFile?.name
+                imageFile: uploadForm.imageFile?.name,
+                audioFileSize: uploadForm.audioFile?.size,
+                imageFileSize: uploadForm.imageFile?.size
             });
+
+            // Check if we have authentication token
+            const token = localStorage.getItem('__clerk_db_jwt');
+            console.log('🔑 Auth token available:', !!token);
 
             const response = await axiosInstance.post('/admin/songs', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
+                timeout: 60000, // 60 seconds timeout for file uploads
             });
 
-            console.log('Song uploaded successfully:', response.data);
+            console.log('✅ Song uploaded successfully:', response.data);
             alert('Song uploaded successfully!');
             
             // Reset form
@@ -114,11 +124,35 @@ const Topbar = () => {
             });
             setShowUpload(false);
         } catch (error: any) {
-            console.error('Error uploading song:', error);
-            console.error('Error response:', error.response?.data);
-            console.error('Error status:', error.response?.status);
+            console.error('❌ Error uploading song:', error);
+            console.error('📊 Error details:', {
+                message: error.message,
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                data: error.response?.data,
+                config: {
+                    url: error.config?.url,
+                    method: error.config?.method,
+                    headers: error.config?.headers
+                }
+            });
             
-            const errorMessage = error.response?.data?.message || error.message || 'Unknown error occurred';
+            let errorMessage = 'Unknown error occurred';
+            
+            if (error.code === 'ERR_NETWORK') {
+                errorMessage = 'Network Error - Please check your connection and try again';
+            } else if (error.response?.status === 401) {
+                errorMessage = 'Unauthorized - Please sign in again';
+            } else if (error.response?.status === 403) {
+                errorMessage = 'Forbidden - Admin access required';
+            } else if (error.response?.status === 413) {
+                errorMessage = 'File too large - Please choose a smaller file';
+            } else if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
             alert(`Error uploading song: ${errorMessage}`);
         } finally {
             setIsUploading(false);

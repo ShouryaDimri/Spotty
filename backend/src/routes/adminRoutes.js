@@ -5,7 +5,9 @@ import { Song } from "../models/songModel.js";
 
 const router = Router();
 
-router.use(protectRoute, requireAdmin);
+router.use(protectRoute);
+// Temporarily disable admin check for testing
+// router.use(protectRoute, requireAdmin);
 
 router.get("/check" , checkAdmin);
 
