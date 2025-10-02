@@ -6,4 +6,3 @@ export default async function handler(req, res) {
   // Return the Express app handler
   return app(req, res);
 }
-
