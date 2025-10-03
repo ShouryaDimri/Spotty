@@ -56,13 +56,15 @@ export const getTrendingSongs = async(req, res) => {
         // Ensure database connection in serverless environment
         await connectDB();
         
+        console.log("Fetching trending songs...");
+        
         // Only fetch real uploaded songs from database - NO DUMMY DATA
         const realSongs = await Song.find({})
             .select('_id title artist imageUrl audioUrl duration')
             .sort({ createdAt: -1 }) // Get newest songs first
             .limit(4);
 
-        console.log(`Found ${realSongs.length} real songs for trending`);
+        console.log(`Found ${realSongs.length} real songs for trending:`, realSongs.map(s => s.title));
 
         res.status(200).json(realSongs);    
     } catch (error) {

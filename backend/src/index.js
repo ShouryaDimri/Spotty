@@ -65,7 +65,7 @@ app.use(cors({
     // Allow specific domains
     const allowedOrigins = [
       'https://spotty-kohl.vercel.app',
-      
+      'https://spotty-git-master-shouryadimris-projects.vercel.app',
       'http://localhost:5173',
       'http://localhost:3000'
     ];
@@ -89,7 +89,7 @@ app.use(fileupload({
   tempFileDir: process.env.NOW_REGION ? '/tmp' : path.join(__dirname, 'tmp'),
   createParentPath: true,
   limits: { 
-    fileSize: 500 * 1024 * 1024, // 500MB limit for larger audio files
+    fileSize: 1024 * 1024 * 1024, // 600MB limit for larger audio files
     files: 2, // Maximum 2 files (audio + image)
     fieldSize: 10 * 1024 * 1024 // 10MB for form fields
   }

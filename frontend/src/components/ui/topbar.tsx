@@ -295,13 +295,15 @@ const Topbar = () => {
                                         <User className="h-4 w-4" />
                                         Change Profile
                                     </button>
+                                    
+                                    <div className="border-t border-zinc-700 my-2"></div>
+                                    
+                                    <div className="px-4 py-3">
+                                        <SignOutButton />
+                                    </div>
                                 </div>
                             </div>
                         )}
-                    </div>
-                    
-                    <div className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white rounded-lg shadow-lg transition-all duration-200 hover:scale-105">
-                        <SignOutButton />
                     </div>
                 </SignedIn>
 

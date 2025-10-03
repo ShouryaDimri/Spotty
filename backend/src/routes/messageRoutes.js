@@ -4,7 +4,7 @@ import { getAllMessages, getMessages, sendMessage, editMessage, deleteMessage } 
 
 const router = Router();
 
-router.get("/", protectRoute, getAllMessages); // Get all messages with auth
+router.get("/all", getAllMessages); // Get all messages (public for testing)
 router.get("/:userId", protectRoute, getMessages); // Get messages by user with auth
 router.post("/", protectRoute, sendMessage); // Send message with auth
 router.put("/:messageId", editMessage);
