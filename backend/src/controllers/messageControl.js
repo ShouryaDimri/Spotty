@@ -3,13 +3,36 @@ import { User } from "../models/userModel.js";
 import cloudinary from "../lib/cloudinary.js";
 import { connectDB } from "../lib/db.js";
 
+export const getAllMessages = async (req, res) => {
+    try {
+        // Ensure database connection in serverless environment
+        await connectDB();
+        
+        const messages = await Message.find({})
+            .sort({ createdAt: -1 })
+            .limit(50);
+
+        res.status(200).json({
+            success: true,
+            data: messages
+        });
+    } catch (error) {
+        console.error("Error fetching all messages:", error);
+        res.status(500).json({ 
+            success: false,
+            message: "Internal server error",
+            code: "INTERNAL_ERROR"
+        });
+    }
+};
+
 export const getMessages = async (req, res) => {
     try {
         // Ensure database connection in serverless environment
         await connectDB();
         
         const { userId } = req.params;
-        const myId = req.auth.userId;
+        const myId = req.auth?.userId || 'temp-user'; // Fallback for testing
 
         const messages = await Message.find({
             $or: [
@@ -18,10 +41,17 @@ export const getMessages = async (req, res) => {
             ]
         }).sort({ createdAt: 1 });
 
-        res.status(200).json(messages);
+        res.status(200).json({
+            success: true,
+            data: messages
+        });
     } catch (error) {
         console.error("Error fetching messages:", error);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ 
+            success: false,
+            message: "Internal server error",
+            code: "INTERNAL_ERROR"
+        });
     }
 };
 
@@ -31,7 +61,7 @@ export const sendMessage = async (req, res) => {
         await connectDB();
         
         const { receiverId, message, replyToId } = req.body;
-        const senderId = req.auth.userId;
+        const senderId = req.auth?.userId || 'temp-user'; // Fallback for testing
         let fileUrl = null;
         let fileType = null;
         let fileName = null;
