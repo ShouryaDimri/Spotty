@@ -105,7 +105,7 @@ const ChatPg = () => {
         if (selectedUser) {
           fetchMessages(selectedUser.clerkId);
         }
-      }, 2000); // Poll every 2 seconds
+      }, 1000); // Poll every 1 second
 
       return () => {
         clearInterval(pollInterval);

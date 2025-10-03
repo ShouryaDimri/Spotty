@@ -120,7 +120,7 @@ const FriendsActivity = () => {
       // In production, use polling for online status updates
       const pollInterval = setInterval(() => {
         fetchOnlineUsers();
-      }, 3000); // Poll every 3 seconds
+      }, 1000); // Poll every 1 second
 
       return () => {
         clearInterval(pollInterval);
