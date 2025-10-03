@@ -535,8 +535,8 @@ const ChatPg = () => {
                               : 'bg-gradient-to-r from-zinc-700 to-zinc-600 text-white'
                           } shadow-lg`}
                         >
-                          {/* 3-Dot Menu - Show on top right of message on hover, only for own messages */}
-                          {isMyMessage && (
+                          {/* 3-Dot Menu - Show on top right of message on hover for all messages */}
+                          {(
                             <div className="absolute -top-2 -right-2 z-10 message-menu">
                               {/* 3-Dot Button - Show on hover */}
                               <Button
@@ -554,20 +554,23 @@ const ChatPg = () => {
                               {/* Dropdown Menu */}
                               {openMenuId === message._id && (
                                 <div className="absolute right-0 top-8 z-50 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg py-1 min-w-[80px]">
-                                  <button
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      console.log('Edit clicked for message:', message._id);
-                                      setEditingMessageId(message._id);
-                                      setEditedMessage(message.message || "");
-                                      closeMenu();
-                                    }}
-                                    className="w-full px-3 py-2 text-left text-sm text-white hover:bg-zinc-700 flex items-center justify-center"
-                                    title="Edit"
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </button>
+                                  {/* Show Edit only for own messages */}
+                                  {isMyMessage && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        console.log('Edit clicked for message:', message._id);
+                                        setEditingMessageId(message._id);
+                                        setEditedMessage(message.message || "");
+                                        closeMenu();
+                                      }}
+                                      className="w-full px-3 py-2 text-left text-sm text-white hover:bg-zinc-700 flex items-center justify-center"
+                                      title="Edit"
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </button>
+                                  )}
                                   <button
                                     onClick={(e) => {
                                       e.preventDefault();
@@ -581,19 +584,22 @@ const ChatPg = () => {
                                   >
                                     <Reply className="h-4 w-4" />
                                   </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      console.log('Delete clicked for message:', message._id);
-                                      handleDeleteMessage(message._id);
-                                      closeMenu();
-                                    }}
-                                    className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-zinc-700 flex items-center justify-center"
-                                    title="Delete"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </button>
+                                  {/* Show Delete only for own messages */}
+                                  {isMyMessage && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        console.log('Delete clicked for message:', message._id);
+                                        handleDeleteMessage(message._id);
+                                        closeMenu();
+                                      }}
+                                      className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-red-900/20 flex items-center justify-center"
+                                      title="Delete"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  )}
                                 </div>
                               )}
                             </div>
