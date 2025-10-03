@@ -24,9 +24,15 @@ const Topbar = () => {
 
     useEffect(() => {
         const checkAdminStatus = async () => {
+            // Only check admin status if user is signed in
+            if (!user) {
+                setIsAdmin(false);
+                return;
+            }
+
             try {
                 const response = await axiosInstance.get("/admin/check");
-                setIsAdmin(response.data.admin || false);
+                setIsAdmin((response.data as any)?.admin || false);
             } catch (error) {
                 // If admin check fails, still allow upload for regular users
                 setIsAdmin(true);
@@ -34,7 +40,7 @@ const Topbar = () => {
         };
 
         checkAdminStatus();
-    }, []);
+    }, [user]);
 
     useEffect(() => {
         if (user) {
@@ -126,7 +132,7 @@ const Topbar = () => {
             formData.append('duration', '0'); // Will be calculated on server
 
 
-            const response = await axiosInstance.post('/admin/upload-song', formData, {
+            await axiosInstance.post('/admin/upload-song', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },

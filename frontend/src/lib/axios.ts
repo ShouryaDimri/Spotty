@@ -1,4 +1,5 @@
 import axios from "axios";
+import { Clerk } from "@clerk/clerk-react";
 
 // Use VITE_API_BASE_URL if set, otherwise default based on environment
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
@@ -47,12 +48,15 @@ axiosInstance.interceptors.response.use(
         return response;
     },
     async (error: any) => {
-        // Handle 401 errors by redirecting to login
+        // Handle 401 errors more gracefully
         if (error.response?.status === 401) {
-            // Clear any stored auth data
-            if (window.Clerk) {
-                await window.Clerk.signOut();
-            }
+            console.warn('Authentication required - user may need to sign in');
+            // Don't automatically sign out, let the component handle it
+        }
+        
+        // Handle network errors
+        if (error.code === 'ERR_NETWORK') {
+            console.error('Network error - server may be down');
         }
         
         return Promise.reject(error);

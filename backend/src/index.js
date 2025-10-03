@@ -87,17 +87,13 @@ app.use(fileupload({
   }
 }));
 
-// Debug middleware to log all incoming requests
-app.use((req, res, next) => {
-  console.log(`📥 ${req.method} ${req.path}`);
-  console.log(`📊 Headers:`, req.headers);
-  if (req.method === 'POST' && req.path.includes('/admin/songs')) {
-    console.log(`🎵 Song upload request detected`);
-    console.log(`📁 Content-Type:`, req.headers['content-type']);
-    console.log(`📏 Content-Length:`, req.headers['content-length']);
-  }
-  next();
-});
+// Request logging middleware (only in development)
+if (process.env.NODE_ENV === 'development') {
+  app.use((req, res, next) => {
+    console.log(`📥 ${req.method} ${req.path}`);
+    next();
+  });
+}
 
 // API Routes - place these before static file serving to avoid conflicts
 app.use("/api/users", userRoutes);

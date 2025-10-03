@@ -245,13 +245,35 @@ const ChatPg = () => {
 
   const handleDeleteMessage = async (messageId: string) => {
     try {
-      await axiosInstance.delete(`/messages/${messageId}`);
-      setMessages(prev => prev.filter(msg => msg._id !== messageId));
-      if (socket) {
-        socket.emit("delete_message", { messageId, receiverId: selectedUser?.clerkId });
+      const response = await axiosInstance.delete(`/messages/${messageId}`);
+      if (response.status === 200) {
+        setMessages(prev => prev.filter(msg => msg._id !== messageId));
+        if (socket) {
+          socket.emit("delete_message", { messageId, receiverId: selectedUser?.clerkId });
+        }
+        // Show success message
+        const successDiv = document.createElement('div');
+        successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+        successDiv.textContent = 'Message deleted successfully';
+        document.body.appendChild(successDiv);
+        setTimeout(() => {
+          if (document.body.contains(successDiv)) {
+            document.body.removeChild(successDiv);
+          }
+        }, 3000);
       }
-    } catch (error) {
-      console.error("❌ Error deleting message:", error);
+    } catch (error: any) {
+      console.error("Error deleting message:", error);
+      // Show error message
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+      errorDiv.textContent = `Failed to delete message: ${error.response?.data?.message || error.message}`;
+      document.body.appendChild(errorDiv);
+      setTimeout(() => {
+        if (document.body.contains(errorDiv)) {
+          document.body.removeChild(errorDiv);
+        }
+      }, 5000);
     }
   };
 
@@ -261,20 +283,42 @@ const ChatPg = () => {
       const response = await axiosInstance.put(`/messages/${messageId}`, {
         message: editedMessage.trim()
       });
-      setMessages(prev => prev.map(msg => 
-        msg._id === messageId ? { ...msg, message: response.data.message } : msg
-      ));
-      if (socket) {
-        socket.emit("edit_message", { 
-          messageId, 
-          message: editedMessage.trim(),
-          receiverId: selectedUser?.clerkId 
-        });
+      if (response.status === 200) {
+        setMessages(prev => prev.map(msg => 
+          msg._id === messageId ? { ...msg, message: response.data.message } : msg
+        ));
+        if (socket) {
+          socket.emit("edit_message", { 
+            messageId, 
+            message: editedMessage.trim(),
+            receiverId: selectedUser?.clerkId 
+          });
+        }
+        setEditingMessageId(null);
+        setEditedMessage("");
+        // Show success message
+        const successDiv = document.createElement('div');
+        successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+        successDiv.textContent = 'Message edited successfully';
+        document.body.appendChild(successDiv);
+        setTimeout(() => {
+          if (document.body.contains(successDiv)) {
+            document.body.removeChild(successDiv);
+          }
+        }, 3000);
       }
-      setEditingMessageId(null);
-      setEditedMessage("");
-    } catch (error) {
-      console.error("❌ Error editing message:", error);
+    } catch (error: any) {
+      console.error("Error editing message:", error);
+      // Show error message
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+      errorDiv.textContent = `Failed to edit message: ${error.response?.data?.message || error.message}`;
+      document.body.appendChild(errorDiv);
+      setTimeout(() => {
+        if (document.body.contains(errorDiv)) {
+          document.body.removeChild(errorDiv);
+        }
+      }, 5000);
     }
   };
 
