@@ -20,6 +20,11 @@ export const createSong = async (req, res) => {
     // Ensure database connection in serverless environment
     await connectDB();
     
+    console.log("Creating song with data:", req.body);
+    console.log("Files received:", req.files);
+    console.log("Auth info:", req.auth);
+    console.log("Headers:", req.headers);
+    
     if (!req.files || !req.files.audioFile) {
       return res.status(400).json({ message: "Audio file is required" });
     }

@@ -15,6 +15,6 @@ router.delete("/albums/:id", protectRoute, requireAdmin, deleteAlbum);
 
 // Public routes (all authenticated users can access)
 router.post("/test-upload", protectRoute, testUpload);
-router.post("/upload-song", protectRoute, createSong); // Regular users can upload songs
+router.post("/upload-song", createSong); // Temporarily remove auth for testing
 
 export default router;

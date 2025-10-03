@@ -67,8 +67,9 @@ app.use(fileupload({
   tempFileDir: process.env.NOW_REGION ? '/tmp' : path.join(__dirname, 'tmp'),
   createParentPath: true,
   limits: { 
-    fileSize: 50 * 1024 * 1024, // 50MB limit for larger audio files
-    files: 2 // Maximum 2 files (audio + image)
+    fileSize: 100 * 1024 * 1024, // 100MB limit for larger audio files
+    files: 2, // Maximum 2 files (audio + image)
+    fieldSize: 10 * 1024 * 1024 // 10MB for form fields
   }
 }));
 
