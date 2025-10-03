@@ -29,42 +29,50 @@ export const getFeaturedSongs = async(req, res) => {
         // Ensure database connection in serverless environment
         await connectDB();
         
-        // Add 3 dummy songs for "Made For You" section
-        const dummySongs = [
-            {
-                _id: "dummy_featured_1",
-                title: "Midnight Memories",
-                artist: "Luna Eclipse",
-                imageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop&crop=faces",
-                audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
-                duration: 180
-            },
-            {
-                _id: "dummy_featured_2",
-                title: "Electric Dreams",
-                artist: "Neon Pulse",
-                imageUrl: "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=300&h=300&fit=crop&crop=faces",
-                audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
-                duration: 210
-            },
-            {
-                _id: "dummy_featured_3",
-                title: "Ocean Breeze",
-                artist: "Coastal Vibes",
-                imageUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop&crop=faces",
-                audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
-                duration: 195
-            }
-        ];
-
-        // Try to fetch from database first - get newest uploaded songs
+        // Fetch real uploaded songs from database
         const dbSongs = await Song.find({})
             .select('_id title artist imageUrl audioUrl duration')
-            .limit(6)
             .sort({ createdAt: -1 }); // Get newest songs first
 
-        // Combine real songs with dummy songs (prioritize real songs)
-        const allSongs = [...dbSongs, ...dummySongs].slice(0, 6);
+        // If we have enough real songs, use them. Otherwise, add some dummy songs as fallback
+        let allSongs = dbSongs;
+        
+        if (dbSongs.length < 6) {
+            const dummySongs = [
+                {
+                    _id: "dummy_featured_1",
+                    title: "Midnight Memories",
+                    artist: "Luna Eclipse",
+                    imageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop&crop=faces",
+                    audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+                    duration: 180
+                },
+                {
+                    _id: "dummy_featured_2",
+                    title: "Electric Dreams",
+                    artist: "Neon Pulse",
+                    imageUrl: "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=300&h=300&fit=crop&crop=faces",
+                    audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+                    duration: 210
+                },
+                {
+                    _id: "dummy_featured_3",
+                    title: "Ocean Breeze",
+                    artist: "Coastal Vibes",
+                    imageUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop&crop=faces",
+                    audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+                    duration: 195
+                }
+            ];
+            
+            // Only add dummy songs if we don't have enough real songs
+            const neededDummySongs = 6 - dbSongs.length;
+            allSongs = [...dbSongs, ...dummySongs.slice(0, neededDummySongs)];
+        } else {
+            // If we have more than 6 songs, just take the first 6
+            allSongs = dbSongs.slice(0, 6);
+        }
+
         res.status(200).json(allSongs);    
     } catch (error) {
         console.error("Error fetching featured songs:", error);
@@ -113,14 +121,23 @@ export const getTrendingSongs = async(req, res) => {
             }
         ];
 
-        // Try to fetch from database first - get uploaded songs
+        // Fetch real uploaded songs from database
         const dbSongs = await Song.find({})
             .select('_id title artist imageUrl audioUrl duration')
-            .limit(4)
             .sort({ createdAt: -1 }); // Get newest songs first
 
-        // Combine real songs with dummy songs (prioritize real songs)
-        const allSongs = [...dbSongs, ...dummySongs].slice(0, 4);
+        // If we have enough real songs, use them. Otherwise, add some dummy songs as fallback
+        let allSongs = dbSongs;
+        
+        if (dbSongs.length < 4) {
+            // Only add dummy songs if we don't have enough real songs
+            const neededDummySongs = 4 - dbSongs.length;
+            allSongs = [...dbSongs, ...dummySongs.slice(0, neededDummySongs)];
+        } else {
+            // If we have more than 4 songs, just take the first 4
+            allSongs = dbSongs.slice(0, 4);
+        }
+
         res.status(200).json(allSongs);    
     } catch (error) {
         console.error("Error fetching trending songs:", error);
