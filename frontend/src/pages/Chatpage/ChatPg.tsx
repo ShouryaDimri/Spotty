@@ -36,6 +36,10 @@ const ChatPg = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  
+  // Ensure arrays are always arrays
+  const safeUsers = Array.isArray(users) ? users : [];
+  const safeMessages = Array.isArray(messages) ? messages : [];
   const [newMessage, setNewMessage] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -77,19 +81,19 @@ const ChatPg = () => {
 
       // Listen for incoming messages
       newSocket.on("receive_message", (message: Message) => {
-        setMessages(prev => [...prev, message]);
+        setMessages(prev => Array.isArray(prev) ? [...prev, message] : [message]);
       });
 
       // Listen for message edits
       newSocket.on("message_edited", (data: { messageId: string; message: string }) => {
-        setMessages(prev => prev.map(msg => 
+        setMessages(prev => Array.isArray(prev) ? prev.map(msg => 
           msg._id === data.messageId ? { ...msg, message: data.message } : msg
-        ));
+        ) : []);
       });
 
       // Listen for message deletions
       newSocket.on("message_deleted", (data: { messageId: string }) => {
-        setMessages(prev => prev.filter(msg => msg._id !== data.messageId));
+        setMessages(prev => Array.isArray(prev) ? prev.filter(msg => msg._id !== data.messageId) : []);
       });
 
       return () => {
@@ -148,7 +152,14 @@ const ChatPg = () => {
   const fetchUsers = async (retryCount = 0) => {
     try {
       const response = await axiosInstance.get("/users");
-        setUsers(response.data as User[]);
+        const userData = response.data;
+        if (Array.isArray(userData)) {
+          setUsers(userData);
+        } else if (userData && Array.isArray(userData.data)) {
+          setUsers(userData.data);
+        } else {
+          setUsers([]);
+        }
     } catch (error: any) {
       console.error("Error fetching users:", error);
       
@@ -170,7 +181,14 @@ const ChatPg = () => {
   const fetchMessages = async (userId: string, retryCount = 0) => {
     try {
       const response = await axiosInstance.get(`/messages/${userId}`);
-        setMessages(response.data as Message[]);
+        const messageData = response.data;
+        if (Array.isArray(messageData)) {
+          setMessages(messageData);
+        } else if (messageData && Array.isArray(messageData.data)) {
+          setMessages(messageData.data);
+        } else {
+          setMessages([]);
+        }
     } catch (error: any) {
       console.error("Error fetching messages:", error);
       
@@ -430,7 +448,7 @@ const ChatPg = () => {
         
         <ScrollArea className="h-[calc(100vh-160px)] overflow-y-auto max-h-[calc(100vh-160px)]">
           <div className="flex flex-wrap gap-2 p-2">
-            {users && Array.isArray(users) ? users.map((chatUser) => (
+            {safeUsers && safeUsers.length > 0 ? safeUsers.map((chatUser) => (
               <div
                 key={chatUser._id}
                 onClick={() => {
@@ -498,7 +516,7 @@ const ChatPg = () => {
             {/* Messages */}
             <ScrollArea className="flex-1 p-4 overflow-y-auto max-h-[calc(100vh-280px)]" style={{ height: 'calc(100vh - 280px)', minHeight: '400px' }}>
               <div className="space-y-4 min-h-full">
-                {messages && Array.isArray(messages) ? messages.map((message) => {
+                {safeMessages && safeMessages.length > 0 ? safeMessages.map((message) => {
                   const isMyMessage = message.senderId === user?.id;
                   const isEditing = editingMessageId === message._id;
                   return (
