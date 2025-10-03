@@ -169,6 +169,26 @@ app.use((req, res, next) => {
   });
 });
 
+// Add database connection middleware for serverless environment
+app.use(async (req, res, next) => {
+  try {
+    // Ensure database connection for every request in serverless environment
+    if (process.env.NOW_REGION) {
+      console.log('🔌 Serverless environment detected, connecting to MongoDB...');
+      await connectDB();
+      console.log('✅ MongoDB connected successfully');
+    }
+    next();
+  } catch (error) {
+    console.error('❌ Database connection error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Database connection failed',
+      error: error.message
+    });
+  }
+});
+
 // Create handler for Vercel serverless functions
 let handler = app; // Default to express app
 
