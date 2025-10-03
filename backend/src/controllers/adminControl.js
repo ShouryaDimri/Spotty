@@ -17,38 +17,22 @@ const uploadToCloudinary = async (file) => {
 
 export const createSong = async (req, res) => {
    try {
-    console.log("🎵 Creating song with data:", {
-        title: req.body.title,
-        artist: req.body.artist,
-        hasAudioFile: !!req.files?.audioFile,
-        hasImageFile: !!req.files?.imageFile,
-        files: req.files ? Object.keys(req.files) : 'No files',
-        bodyKeys: Object.keys(req.body),
-        fileKeys: req.files ? Object.keys(req.files) : 'No files object'
-    });
-
     // Ensure database connection in serverless environment
     await connectDB();
     
     if (!req.files || !req.files.audioFile) {
-      console.log("❌ No audio file found in request");
-      console.log("Request files:", req.files);
-      console.log("Request body:", req.body);
       return res.status(400).json({ message: "Audio file is required" });
     }
     const { title, artist, albumId, duration } = req.body;
     const audioFile = req.files.audioFile;
     const imageFile = req.files.imageFile;
 
-    console.log("📤 Uploading to Cloudinary...");
     const audioUrl = await uploadToCloudinary(audioFile);
     let imageUrl = '/cover-images/1.jpg'; // Default image
     
     if (imageFile) {
         imageUrl = await uploadToCloudinary(imageFile);
     }
-    
-    console.log("💾 Saving song to database...");
     const song = new Song({
         title,
         artist,
@@ -65,10 +49,9 @@ export const createSong = async (req, res) => {
         });
     }
     
-    console.log("✅ Song created successfully:", song._id);
     res.status(201).json(song);
   } catch (error) {
-    console.error("❌ Error creating song:", error);
+    console.error("Error creating song:", error);
     res.status(500).json({ message: "Server error", error: error.message });
  }
 
@@ -140,16 +123,23 @@ export const deleteAlbum = async (req, res) => {
 };
 
 export const checkAdmin = async (req, res) => {
-    res.status(200).json({admin: true}); 
+    try {
+        const adminEmail = process.env.ADMIN_EMAIL;
+        const userEmail = req.auth?.user?.emailAddresses?.[0]?.emailAddress;
+        
+        if (adminEmail && userEmail === adminEmail) {
+            res.status(200).json({ admin: true });
+        } else {
+            res.status(200).json({ admin: false });
+        }
+    } catch (error) {
+        console.error("Error checking admin status:", error);
+        res.status(200).json({ admin: false });
+    }
 };
 
 export const testUpload = async (req, res) => {
     try {
-        console.log("🧪 Test upload endpoint hit");
-        console.log("📊 Request body:", req.body);
-        console.log("📁 Request files:", req.files);
-        console.log("📋 Headers:", req.headers);
-        
         res.status(200).json({
             message: "Test upload endpoint working",
             hasFiles: !!req.files,
@@ -159,7 +149,7 @@ export const testUpload = async (req, res) => {
             timestamp: new Date().toISOString()
         });
     } catch (error) {
-        console.error("❌ Test upload error:", error);
+        console.error("Test upload error:", error);
         res.status(500).json({ error: error.message });
     }
 };

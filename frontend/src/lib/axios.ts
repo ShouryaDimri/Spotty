@@ -4,11 +4,6 @@ import axios from "axios";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
   (import.meta.env.MODE === 'production' ? "/api" : "http://localhost:5137/api");
 
-console.log('🔧 Axios Config:', {
-  MODE: import.meta.env.MODE,
-  VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
-  API_BASE_URL: API_BASE_URL
-});
 
 export const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
@@ -29,10 +24,12 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.request.use(
     async (config: any) => {
         try {
-            // Get token from Clerk
-            const token = await window.Clerk?.session?.getToken();
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
+            // Get token from Clerk if available
+            if (window.Clerk?.session) {
+                const token = await window.Clerk.session.getToken();
+                if (token) {
+                    config.headers.Authorization = `Bearer ${token}`;
+                }
             }
         } catch (error) {
             // Silently fail for token refresh

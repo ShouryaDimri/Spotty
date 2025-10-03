@@ -98,7 +98,18 @@ const Topbar = () => {
 
     const handleUploadSubmit = async () => {
         if (!uploadForm.title || !uploadForm.artist || !uploadForm.audioFile) {
-            alert('Please fill in all required fields');
+            // Show validation error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-yellow-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+            errorDiv.textContent = 'Please fill in all required fields';
+            document.body.appendChild(errorDiv);
+            
+            // Remove message after 3 seconds
+            setTimeout(() => {
+                if (document.body.contains(errorDiv)) {
+                    document.body.removeChild(errorDiv);
+                }
+            }, 3000);
             return;
         }
 
@@ -122,7 +133,16 @@ const Topbar = () => {
                 timeout: 60000, // 60 seconds timeout for file uploads
             });
 
-            alert('Song uploaded successfully!');
+            // Show success message
+            const successMessage = document.createElement('div');
+            successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+            successMessage.textContent = 'Song uploaded successfully!';
+            document.body.appendChild(successMessage);
+            
+            // Remove message after 3 seconds
+            setTimeout(() => {
+                document.body.removeChild(successMessage);
+            }, 3000);
             
             // Reset form
             setUploadForm({
@@ -151,7 +171,18 @@ const Topbar = () => {
                 errorMessage = error.message;
             }
             
-            alert(`Error uploading song: ${errorMessage}`);
+            // Show error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+            errorDiv.textContent = `Error uploading song: ${errorMessage}`;
+            document.body.appendChild(errorDiv);
+            
+            // Remove message after 5 seconds
+            setTimeout(() => {
+                if (document.body.contains(errorDiv)) {
+                    document.body.removeChild(errorDiv);
+                }
+            }, 5000);
         } finally {
             setIsUploading(false);
         }
