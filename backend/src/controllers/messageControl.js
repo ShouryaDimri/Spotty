@@ -103,25 +103,33 @@ export const editMessage = async (req, res) => {
         
         const { messageId } = req.params;
         const { message } = req.body;
-        const userId = req.auth.userId;
+        const userId = req.auth?.userId;
+
+        console.log("Edit message request:", { messageId, message, userId });
 
         if (!userId) {
+            console.log("No userId found in request");
             return res.status(401).json({ message: "Authentication required" });
         }
 
         const msg = await Message.findById(messageId);
         
         if (!msg) {
+            console.log("Message not found:", messageId);
             return res.status(404).json({ message: "Message not found" });
         }
 
+        console.log("Message found:", { senderId: msg.senderId, userId });
+
         if (msg.senderId !== userId) {
+            console.log("User not authorized to edit message");
             return res.status(403).json({ message: "Not authorized to edit this message" });
         }
 
         msg.message = message;
         await msg.save();
 
+        console.log("Message edited successfully");
         res.status(200).json(msg);
     } catch (error) {
         console.error("Error editing message:", error);
@@ -134,24 +142,32 @@ export const deleteMessage = async (req, res) => {
         await connectDB();
         
         const { messageId } = req.params;
-        const userId = req.auth.userId;
+        const userId = req.auth?.userId;
+
+        console.log("Delete message request:", { messageId, userId });
 
         if (!userId) {
+            console.log("No userId found in request");
             return res.status(401).json({ message: "Authentication required" });
         }
 
         const msg = await Message.findById(messageId);
         
         if (!msg) {
+            console.log("Message not found:", messageId);
             return res.status(404).json({ message: "Message not found" });
         }
 
+        console.log("Message found:", { senderId: msg.senderId, userId });
+
         if (msg.senderId !== userId) {
+            console.log("User not authorized to delete message");
             return res.status(403).json({ message: "Not authorized to delete this message" });
         }
 
         await Message.findByIdAndDelete(messageId);
 
+        console.log("Message deleted successfully");
         res.status(200).json({ message: "Message deleted successfully" });
     } catch (error) {
         console.error("Error deleting message:", error);
