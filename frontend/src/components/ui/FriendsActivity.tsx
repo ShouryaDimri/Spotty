@@ -259,7 +259,7 @@ const FriendsActivity = () => {
                 
                 {/* Hover Action Buttons for Current User */}
                 {hoveredUserId === 'current-user' && (
-                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex gap-2 opacity-100 transition-all duration-300 z-10">
                     <button
                       onClick={() => {
                         // Navigate to profile settings or show profile modal
@@ -363,7 +363,7 @@ const FriendsActivity = () => {
                   
                   {/* Hover Action Buttons */}
                   {isHovered && (
-                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex gap-2 opacity-100 transition-all duration-300 z-10">
                       <button
                         onClick={() => {
                           // Navigate to messages page and select this user

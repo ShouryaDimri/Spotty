@@ -7,7 +7,7 @@ const router = Router();
 
 // Admin routes (require admin access)
 router.get("/health", healthCheck);
-router.get("/check", checkAdmin); // Temporarily remove auth for testing
+router.get("/check", protectRoute, checkAdmin); // Require auth but allow all users
 router.post("/songs", protectRoute, requireAdmin, createSong);
 router.post("/albums", protectRoute, requireAdmin, createAlbum);
 router.delete("/songs/:id", protectRoute, requireAdmin, deleteSong);
@@ -15,6 +15,6 @@ router.delete("/albums/:id", protectRoute, requireAdmin, deleteAlbum);
 
 // Public routes (all authenticated users can access)
 router.post("/test-upload", protectRoute, testUpload);
-router.post("/upload-song", createSong); // Temporarily remove auth for testing
+router.post("/upload-song", protectRoute, createSong); // Require auth but allow all users
 
 export default router;

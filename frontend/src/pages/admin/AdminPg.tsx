@@ -24,7 +24,7 @@ const AdminPg = () => {
 		fetchAdminData();
 	}, []);
 
-	const fetchAdminData = async () => {
+		const fetchAdminData = async () => {
 		try {
 			const [statsRes, songsRes, albumsRes] = await Promise.all([
 				axiosInstance.get("/statistics"),
@@ -32,11 +32,16 @@ const AdminPg = () => {
 				axiosInstance.get("/albums")
 			]);
 
-			setStats(statsRes.data);
-			setSongs(songsRes.data);
+			// Handle new response format
+			setStats(statsRes.data.success ? statsRes.data : statsRes.data);
+			setSongs(songsRes.data.success ? songsRes.data.data : songsRes.data);
 			setAlbums(albumsRes.data);
 		} catch (error) {
 			console.error("Error fetching admin data:", error);
+			// Set fallback values
+			setStats({ totalSongs: 0, totalUsers: 0, totalAlbums: 0, totalArtists: 0 });
+			setSongs([]);
+			setAlbums([]);
 		} finally {
 			setIsLoading(false);
 		}

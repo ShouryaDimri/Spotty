@@ -6,19 +6,27 @@ export const getAllSongs = async(req, res) => {
         // Ensure database connection in serverless environment
         await connectDB();
         
+        console.log("Fetching all songs...");
+        
         // Use find instead of aggregate for better compatibility
         const songs = await Song.find({})
             .select('_id title artist imageUrl audioUrl duration')
-            .limit(6)
+            .limit(50)
             .sort({ createdAt: -1 });
 
-        res.status(200).json(songs);    
+        console.log(`Found ${songs.length} songs`);
+        res.status(200).json({
+            success: true,
+            data: songs,
+            count: songs.length
+        });    
     } catch (error) {
         console.error("Error fetching songs:", error);
         res.status(500).json({ 
             success: false,
             message: "Internal server error",
-            code: "INTERNAL_ERROR"
+            code: "INTERNAL_ERROR",
+            data: []
         });
     }
 }

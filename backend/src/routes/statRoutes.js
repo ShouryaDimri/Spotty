@@ -4,6 +4,6 @@ import { getStats } from "../controllers/statControl.js";
 
 const router = Router();
 
-router.get("/", getStats); // Public access for testing
+router.get("/", protectRoute, getStats); // Require auth but allow all users
 
 export default router;
