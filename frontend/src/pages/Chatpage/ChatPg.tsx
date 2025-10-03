@@ -152,7 +152,7 @@ const ChatPg = () => {
   const fetchUsers = async (retryCount = 0) => {
     try {
       const response = await axiosInstance.get("/users");
-        const userData = response.data;
+        const userData = response.data as any;
         if (Array.isArray(userData)) {
           setUsers(userData);
         } else if (userData && Array.isArray(userData.data)) {
@@ -181,7 +181,7 @@ const ChatPg = () => {
   const fetchMessages = async (userId: string, retryCount = 0) => {
     try {
       const response = await axiosInstance.get(`/messages/${userId}`);
-        const messageData = response.data;
+        const messageData = response.data as any;
         if (Array.isArray(messageData)) {
           setMessages(messageData);
         } else if (messageData && Array.isArray(messageData.data)) {
