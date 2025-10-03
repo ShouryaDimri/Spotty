@@ -138,7 +138,7 @@ const ChatPg = () => {
   const fetchUsers = async (retryCount = 0) => {
     try {
       const response = await axiosInstance.get("/users");
-      setUsers(response.data);
+        setUsers(response.data as User[]);
     } catch (error: any) {
       console.error("Error fetching users:", error);
       
@@ -160,7 +160,7 @@ const ChatPg = () => {
   const fetchMessages = async (userId: string, retryCount = 0) => {
     try {
       const response = await axiosInstance.get(`/messages/${userId}`);
-      setMessages(response.data);
+        setMessages(response.data as Message[]);
     } catch (error: any) {
       console.error("Error fetching messages:", error);
       
@@ -203,17 +203,17 @@ const ChatPg = () => {
         },
       });
 
-      setMessages(prev => [...prev, response.data]);
+        setMessages(prev => [...prev, response.data as Message]);
       
       if (socket) {
         socket.emit("send_message", {
           senderId: user?.id,
           receiverId: selectedUser.clerkId,
           message: newMessage.trim(),
-          fileUrl: response.data.fileUrl,
-          fileType: response.data.fileType,
-          fileName: response.data.fileName,
-          replyTo: response.data.replyTo
+          fileUrl: (response.data as any).fileUrl,
+          fileType: (response.data as any).fileType,
+          fileName: (response.data as any).fileName,
+          replyTo: (response.data as any).replyTo
         });
       }
       
@@ -322,7 +322,7 @@ const ChatPg = () => {
       
       if (response.status === 200) {
         setMessages(prev => prev.map(msg => 
-          msg._id === messageId ? { ...msg, message: response.data.message } : msg
+          msg._id === messageId ? { ...msg, message: (response.data as any).message } : msg
         ));
         if (socket) {
           socket.emit("edit_message", { 
