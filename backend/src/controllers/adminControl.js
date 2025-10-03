@@ -3,6 +3,12 @@ import {Album} from "../models/albumModel.js";
 import cloudinary from "../lib/cloudinary.js";
 import { connectDB } from "../lib/db.js";
 
+// Function to get default music logo
+const getDefaultMusicLogo = () => {
+    // Using a music note icon from a CDN as default
+    return 'https://cdn-icons-png.flaticon.com/512/174/174872.png';
+};
+
 const uploadToCloudinary = async (file) => {
     try {
         const result = await cloudinary.uploader.upload(file.tempFilePath, {
@@ -89,8 +95,8 @@ export const createSong = async (req, res) => {
         imageUrl = await uploadToCloudinary(imageFile);
         console.log("Image uploaded successfully:", imageUrl);
       } else {
-        console.log("No image file provided, using default");
-        imageUrl = '/cover-images/1.jpg';
+        console.log("No image file provided, using default music logo");
+        imageUrl = getDefaultMusicLogo();
       }
     } catch (uploadError) {
       console.error("Cloudinary upload error:", uploadError);

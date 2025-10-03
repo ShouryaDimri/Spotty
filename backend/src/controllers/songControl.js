@@ -1,6 +1,12 @@
 import { Song } from "../models/songModel.js";
 import { connectDB } from "../lib/db.js";
 
+// Function to get default music logo
+const getDefaultMusicLogo = () => {
+    // Using a music note icon from a CDN as default
+    return 'https://cdn-icons-png.flaticon.com/512/174/174872.png';
+};
+
 export const getAllSongs = async(req, res) => {
     try {
         // Ensure database connection in serverless environment
@@ -17,7 +23,7 @@ export const getAllSongs = async(req, res) => {
         // Add default imageUrl for songs that don't have one
         const songsWithImages = songs.map(song => ({
             ...song.toObject(),
-            imageUrl: song.imageUrl || '/cover-images/1.jpg'
+            imageUrl: song.imageUrl || getDefaultMusicLogo()
         }));
 
         console.log(`Found ${songsWithImages.length} songs`);
@@ -51,7 +57,7 @@ export const getFeaturedSongs = async(req, res) => {
         // Add default imageUrl for songs that don't have one
         const songsWithImages = realSongs.map(song => ({
             ...song.toObject(),
-            imageUrl: song.imageUrl || '/cover-images/1.jpg'
+            imageUrl: song.imageUrl || getDefaultMusicLogo()
         }));
 
         console.log(`Found ${songsWithImages.length} real songs for featured`);
@@ -79,7 +85,7 @@ export const getTrendingSongs = async(req, res) => {
         // Add default imageUrl for songs that don't have one
         const songsWithImages = realSongs.map(song => ({
             ...song.toObject(),
-            imageUrl: song.imageUrl || '/cover-images/1.jpg'
+            imageUrl: song.imageUrl || getDefaultMusicLogo()
         }));
 
         console.log(`Found ${songsWithImages.length} real songs for trending:`, songsWithImages.map(s => s.title));
@@ -119,7 +125,7 @@ export const searchSongs = async(req, res) => {
         // Add default imageUrl for songs that don't have one
         const songsWithImages = songs.map(song => ({
             ...song.toObject(),
-            imageUrl: song.imageUrl || '/cover-images/1.jpg'
+            imageUrl: song.imageUrl || getDefaultMusicLogo()
         }));
 
         res.status(200).json(songsWithImages);
