@@ -140,20 +140,23 @@ const Topbar = () => {
             });
 
             // Check if response indicates success
-            if (response.data?.success) {
+            const responseData = response.data as any;
+            if (responseData?.success) {
                 // Show success message
                 const successMessage = document.createElement('div');
                 successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-                successMessage.textContent = response.data.message || 'Song uploaded successfully!';
+                successMessage.textContent = responseData.message || 'Song uploaded successfully!';
                 document.body.appendChild(successMessage);
+                
+                // Remove message after 3 seconds
+                setTimeout(() => {
+                    if (document.body.contains(successMessage)) {
+                        document.body.removeChild(successMessage);
+                    }
+                }, 3000);
             } else {
-                throw new Error(response.data?.message || 'Upload failed');
+                throw new Error(responseData?.message || 'Upload failed');
             }
-            
-            // Remove message after 3 seconds
-            setTimeout(() => {
-                document.body.removeChild(successMessage);
-            }, 3000);
             
             // Reset form
             setUploadForm({

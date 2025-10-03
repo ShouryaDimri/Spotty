@@ -32,10 +32,14 @@ const AdminPg = () => {
 				axiosInstance.get("/albums")
 			]);
 
-			// Handle new response format
-			setStats(statsRes.data.success ? statsRes.data : statsRes.data);
-			setSongs(songsRes.data.success ? songsRes.data.data : songsRes.data);
-			setAlbums(albumsRes.data);
+			// Handle new response format with proper type assertions
+			const statsData = statsRes.data as any;
+			const songsData = songsRes.data as any;
+			const albumsData = albumsRes.data as any;
+			
+			setStats(statsData.success ? statsData : statsData);
+			setSongs(songsData.success ? songsData.data : songsData);
+			setAlbums(albumsData);
 		} catch (error) {
 			console.error("Error fetching admin data:", error);
 			// Set fallback values
