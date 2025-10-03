@@ -26,20 +26,28 @@ const AdminPg = () => {
 
 		const fetchAdminData = async () => {
 		try {
+			console.log("Fetching admin data...");
+			
 			const [statsRes, songsRes, albumsRes] = await Promise.all([
 				axiosInstance.get("/statistics"),
 				axiosInstance.get("/songs"),
 				axiosInstance.get("/albums")
 			]);
 
+			console.log("Admin data responses:", { statsRes, songsRes, albumsRes });
+
 			// Handle new response format with proper type assertions
 			const statsData = statsRes.data as any;
 			const songsData = songsRes.data as any;
 			const albumsData = albumsRes.data as any;
 			
+			console.log("Processed data:", { statsData, songsData, albumsData });
+			
 			setStats(statsData.success ? statsData : statsData);
 			setSongs(songsData.success ? songsData.data : songsData);
 			setAlbums(albumsData);
+			
+			console.log("Admin data set successfully");
 		} catch (error) {
 			console.error("Error fetching admin data:", error);
 			// Set fallback values

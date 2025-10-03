@@ -121,6 +121,7 @@ const Topbar = () => {
 
         try {
             setIsUploading(true);
+            console.log("Starting upload process...");
             
             const formData = new FormData();
             formData.append('title', uploadForm.title);
@@ -131,6 +132,12 @@ const Topbar = () => {
             }
             formData.append('duration', '0'); // Will be calculated on server
 
+            console.log("Form data prepared:", {
+                title: uploadForm.title,
+                artist: uploadForm.artist,
+                audioFile: uploadForm.audioFile?.name,
+                imageFile: uploadForm.imageFile?.name
+            });
 
             const response = await axiosInstance.post('/admin/upload-song', formData, {
                 headers: {
@@ -138,6 +145,8 @@ const Topbar = () => {
                 },
                 timeout: 60000, // 60 seconds timeout for file uploads
             });
+            
+            console.log("Upload response:", response);
 
             // Check if response indicates success
             const responseData = response.data as any;
@@ -219,12 +228,6 @@ const Topbar = () => {
         </div>
         
         <div className="relative flex items-center gap-4">
-            {isAdmin && (
-                <Link to={"/admin"} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white rounded-lg shadow-lg transition-all duration-200 hover:scale-105">
-                    <LayoutDashboardIcon className="size-4" />
-                    <span className="hidden md:inline font-medium">Admin Dashboard</span>
-                    <span className="text-xs">⚡</span>
-                </Link>)}
 
                 <SignedIn>
                     {/* Account Dropdown */}
@@ -251,6 +254,17 @@ const Topbar = () => {
                         {showDropdown && (
                             <div className="absolute right-0 mt-2 w-56 bg-zinc-800 border border-zinc-700 rounded-lg shadow-2xl z-[50000]">
                                 <div className="py-2">
+                                    {isAdmin && (
+                                        <Link
+                                            to="/admin"
+                                            onClick={() => setShowDropdown(false)}
+                                            className="w-full flex items-center gap-3 px-4 py-3 text-left text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors"
+                                        >
+                                            <LayoutDashboardIcon className="h-4 w-4" />
+                                            Admin Dashboard
+                                        </Link>
+                                    )}
+                                    
                                     <button
                                         onClick={() => {
                                             setShowSettings(true);
