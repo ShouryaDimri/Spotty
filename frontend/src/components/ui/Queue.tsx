@@ -36,14 +36,21 @@ const Queue = ({ isOpen, onClose }: QueueProps) => {
         className="queue-backdrop fixed inset-0 bg-black/30" 
         onClick={handleBackdropClick}
         style={{ 
-          zIndex: 999998
+          zIndex: 999998,
+          border: 'none',
+          outline: 'none'
         }}
       />
       
       {/* Queue Panel */}
       <div 
         className="queue-panel fixed bottom-24 right-4 w-80 md:w-96 h-80 md:h-96 bg-gradient-to-b from-zinc-900 via-zinc-800 to-zinc-900 rounded-xl shadow-2xl"
-        style={{ zIndex: 999999 }}
+        style={{ 
+          zIndex: 999999,
+          border: 'none',
+          outline: 'none',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+        }}
       >
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 via-transparent to-purple-500/5 pointer-events-none rounded-xl" />

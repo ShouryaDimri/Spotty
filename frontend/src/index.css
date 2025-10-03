@@ -163,6 +163,7 @@
   bottom: 6rem !important;
   right: 1rem !important;
   border: none !important;
+  outline: none !important;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
   background: rgb(24 24 27) !important;
 }
@@ -170,6 +171,14 @@
 .queue-panel * {
   border: none !important;
   outline: none !important;
+  box-shadow: none !important;
+}
+
+.queue-panel::before,
+.queue-panel::after {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .queue-backdrop {
@@ -179,6 +188,9 @@
   left: 0 !important;
   right: 0 !important;
   bottom: 6rem !important; /* Stop backdrop above audio player */
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .chat-input-area {
