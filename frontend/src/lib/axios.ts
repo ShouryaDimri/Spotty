@@ -1,5 +1,16 @@
 import axios from "axios";
-import { Clerk } from "@clerk/clerk-react";
+
+// Extend Window interface to include Clerk
+declare global {
+  interface Window {
+    Clerk?: {
+      session?: {
+        getToken: () => Promise<string | null>;
+      };
+      redirectToSignIn: () => void;
+    };
+  }
+}
 
 // Use VITE_API_BASE_URL if set, otherwise default based on environment
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 

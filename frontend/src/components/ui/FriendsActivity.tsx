@@ -135,7 +135,7 @@ const FriendsActivity = () => {
   const fetchUsers = async (retryCount = 0) => {
     try {
       const response = await axiosInstance.get("/users");
-      setUsers(response.data);
+      setUsers(response.data as User[]);
     } catch (error: any) {
       console.error("Error fetching users:", error);
       
