@@ -258,8 +258,16 @@ const ChatPg = () => {
   };
 
   const handleDeleteMessage = async (messageId: string) => {
+    if (!user?.id) {
+      console.error("User not authenticated");
+      return;
+    }
+
     try {
+      console.log("Deleting message:", messageId);
       const response = await axiosInstance.delete(`/messages/${messageId}`);
+      console.log("Delete response:", response.status);
+      
       if (response.status === 200) {
         setMessages(prev => prev.filter(msg => msg._id !== messageId));
         if (socket) {
@@ -278,6 +286,12 @@ const ChatPg = () => {
       }
     } catch (error: any) {
       console.error("Error deleting message:", error);
+      console.error("Error details:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      
       // Show error message
       const errorDiv = document.createElement('div');
       errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
@@ -292,11 +306,20 @@ const ChatPg = () => {
   };
 
   const handleEditMessage = async (messageId: string) => {
+    if (!user?.id) {
+      console.error("User not authenticated");
+      return;
+    }
+
     if (!editedMessage.trim()) return;
+    
     try {
+      console.log("Editing message:", messageId, "with text:", editedMessage.trim());
       const response = await axiosInstance.put(`/messages/${messageId}`, {
         message: editedMessage.trim()
       });
+      console.log("Edit response:", response.status);
+      
       if (response.status === 200) {
         setMessages(prev => prev.map(msg => 
           msg._id === messageId ? { ...msg, message: response.data.message } : msg
@@ -323,6 +346,12 @@ const ChatPg = () => {
       }
     } catch (error: any) {
       console.error("Error editing message:", error);
+      console.error("Error details:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      
       // Show error message
       const errorDiv = document.createElement('div');
       errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
