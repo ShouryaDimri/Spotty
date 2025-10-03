@@ -254,16 +254,14 @@ const Topbar = () => {
                         {showDropdown && (
                             <div className="absolute right-0 mt-2 w-56 bg-zinc-800 border border-zinc-700 rounded-lg shadow-2xl z-[50000]">
                                 <div className="py-2">
-                                    {isAdmin && (
-                                        <Link
-                                            to="/admin"
-                                            onClick={() => setShowDropdown(false)}
-                                            className="w-full flex items-center gap-3 px-4 py-3 text-left text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors"
-                                        >
-                                            <LayoutDashboardIcon className="h-4 w-4" />
-                                            Admin Dashboard
-                                        </Link>
-                                    )}
+                                    <Link
+                                        to="/admin"
+                                        onClick={() => setShowDropdown(false)}
+                                        className="w-full flex items-center gap-3 px-4 py-3 text-left text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors"
+                                    >
+                                        <LayoutDashboardIcon className="h-4 w-4" />
+                                        Admin Dashboard
+                                    </Link>
                                     
                                     <button
                                         onClick={() => {
