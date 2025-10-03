@@ -486,8 +486,8 @@ const ChatPg = () => {
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4" style={{ height: 'calc(100vh - 240px)' }}>
-              <div className="space-y-4">
+            <ScrollArea className="flex-1 p-4" style={{ height: 'calc(100vh - 280px)', minHeight: '400px' }}>
+              <div className="space-y-4 min-h-full">
                 {messages.map((message) => {
                   const isMyMessage = message.senderId === user?.id;
                   const isEditing = editingMessageId === message._id;
