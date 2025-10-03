@@ -7,6 +7,7 @@ import ChatPg from "./pages/Chatpage/ChatPg"
 import AlbumPg from "./pages/album/AlbumPg"
 import SearchPg from "./pages/search/SearchPg"
 import AdminPg from "./pages/admin/AdminPg"
+import ProfilePg from "./pages/profile/ProfilePg"
 
 
 
@@ -26,6 +27,8 @@ function App() {
         <Route path = "/" element = {<HomePg />}></Route>
         <Route path = "/search" element = {<SearchPg />}></Route>
         <Route path = "/chat" element = {<ChatPg />}></Route>
+        <Route path = "/messages" element = {<ChatPg />}></Route>
+        <Route path = "/profile" element = {<ProfilePg />}></Route>
         <Route path = "/admin" element = {<AdminPg />}></Route>
         <Route path = "/albums/:albumId" element = {<AlbumPg />}></Route>
         {/* Catch-all route for 404s */}

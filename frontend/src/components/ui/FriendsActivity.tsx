@@ -366,8 +366,8 @@ const FriendsActivity = () => {
                     <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex gap-2 opacity-100 transition-all duration-300 z-10">
                       <button
                         onClick={() => {
-                          // Navigate to messages page and select this user
-                          navigate('/messages', { state: { selectedUserId: otherUser._id, selectedUser: otherUser } });
+                          // Navigate to chat page and select this user
+                          navigate('/chat', { state: { selectedUserId: otherUser._id, selectedUser: otherUser } });
                         }}
                         className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white rounded-full shadow-lg hover:scale-110 transition-all duration-200"
                         title="Send Message"
