@@ -372,10 +372,10 @@ const FriendsActivity = () => {
                         <MessageCircle className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => {
-                          // Navigate to profile or show profile modal
-                          console.log('View profile for:', otherUser.fullName);
-                        }}
+                      onClick={() => {
+                        // Navigate to profile or show profile modal
+                        console.log('View profile for:', otherUser.fullName);
+                      }}
                         className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white rounded-full shadow-lg hover:scale-110 transition-all duration-200"
                         title="View Profile"
                       >
