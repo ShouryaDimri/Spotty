@@ -135,7 +135,14 @@ const FriendsActivity = () => {
   const fetchUsers = async (retryCount = 0) => {
     try {
       const response = await axiosInstance.get("/users");
-      setUsers(response.data as User[]);
+      const userData = response.data as any;
+      if (Array.isArray(userData)) {
+        setUsers(userData);
+      } else if (userData && Array.isArray(userData.data)) {
+        setUsers(userData.data);
+      } else {
+        setUsers([]);
+      }
     } catch (error: any) {
       console.error("Error fetching users:", error);
       
@@ -220,7 +227,7 @@ const FriendsActivity = () => {
         </p>
       </div>
       
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-3">
           {/* Current User */}
           {user && (
