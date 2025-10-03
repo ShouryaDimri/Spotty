@@ -7,7 +7,7 @@ const router = Router();
 
 // Admin routes (require admin access)
 router.get("/health", healthCheck);
-router.get("/check", checkAdmin);
+router.get("/check", checkAdmin); // Temporarily remove auth for testing
 router.post("/songs", protectRoute, requireAdmin, createSong);
 router.post("/albums", protectRoute, requireAdmin, createAlbum);
 router.delete("/songs/:id", protectRoute, requireAdmin, deleteSong);
