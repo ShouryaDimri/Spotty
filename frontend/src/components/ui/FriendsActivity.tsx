@@ -365,17 +365,20 @@ const FriendsActivity = () => {
                   {isHovered && (
                     <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
                       <button
-                        onClick={() => navigate('/messages')}
+                        onClick={() => {
+                          // Navigate to messages page and select this user
+                          navigate('/messages', { state: { selectedUserId: otherUser._id, selectedUser: otherUser } });
+                        }}
                         className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white rounded-full shadow-lg hover:scale-110 transition-all duration-200"
                         title="Send Message"
                       >
                         <MessageCircle className="w-4 h-4" />
                       </button>
                       <button
-                      onClick={() => {
-                        // Navigate to profile or show profile modal
-                        console.log('View profile for:', otherUser.fullName);
-                      }}
+                        onClick={() => {
+                          // Navigate to profile page or show profile modal
+                          navigate('/profile', { state: { userId: otherUser._id, user: otherUser } });
+                        }}
                         className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white rounded-full shadow-lg hover:scale-110 transition-all duration-200"
                         title="View Profile"
                       >

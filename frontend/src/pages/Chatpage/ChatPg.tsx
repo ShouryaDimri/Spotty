@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
+import { useLocation } from "react-router-dom";
 import { axiosInstance } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -31,6 +32,7 @@ interface Message {
 
 const ChatPg = () => {
   const { user } = useUser();
+  const location = useLocation();
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -110,6 +112,14 @@ const ChatPg = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  // Handle selected user from navigation state
+  useEffect(() => {
+    if (location.state?.selectedUser) {
+      setSelectedUser(location.state.selectedUser);
+      fetchMessages(location.state.selectedUser.clerkId);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     if (selectedUser) {
