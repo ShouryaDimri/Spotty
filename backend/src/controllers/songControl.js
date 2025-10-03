@@ -14,11 +14,17 @@ export const getAllSongs = async(req, res) => {
             .limit(50)
             .sort({ createdAt: -1 });
 
-        console.log(`Found ${songs.length} songs`);
+        // Add default imageUrl for songs that don't have one
+        const songsWithImages = songs.map(song => ({
+            ...song.toObject(),
+            imageUrl: song.imageUrl || '/cover-images/1.jpg'
+        }));
+
+        console.log(`Found ${songsWithImages.length} songs`);
         res.status(200).json({
             success: true,
-            data: songs,
-            count: songs.length
+            data: songsWithImages,
+            count: songsWithImages.length
         });    
     } catch (error) {
         console.error("Error fetching songs:", error);
@@ -42,9 +48,15 @@ export const getFeaturedSongs = async(req, res) => {
             .sort({ createdAt: -1 }) // Get newest songs first
             .limit(6);
 
-        console.log(`Found ${realSongs.length} real songs for featured`);
+        // Add default imageUrl for songs that don't have one
+        const songsWithImages = realSongs.map(song => ({
+            ...song.toObject(),
+            imageUrl: song.imageUrl || '/cover-images/1.jpg'
+        }));
 
-        res.status(200).json(realSongs);    
+        console.log(`Found ${songsWithImages.length} real songs for featured`);
+
+        res.status(200).json(songsWithImages);    
     } catch (error) {
         console.error("Error fetching featured songs:", error);
         res.status(500).json({ message: "Server error" });
@@ -64,9 +76,15 @@ export const getTrendingSongs = async(req, res) => {
             .sort({ createdAt: -1 }) // Get newest songs first
             .limit(4);
 
-        console.log(`Found ${realSongs.length} real songs for trending:`, realSongs.map(s => s.title));
+        // Add default imageUrl for songs that don't have one
+        const songsWithImages = realSongs.map(song => ({
+            ...song.toObject(),
+            imageUrl: song.imageUrl || '/cover-images/1.jpg'
+        }));
 
-        res.status(200).json(realSongs);    
+        console.log(`Found ${songsWithImages.length} real songs for trending:`, songsWithImages.map(s => s.title));
+
+        res.status(200).json(songsWithImages);    
     } catch (error) {
         console.error("Error fetching trending songs:", error);
         res.status(500).json({ message: "Server error" });
@@ -98,7 +116,13 @@ export const searchSongs = async(req, res) => {
             duration: 1
         }).limit(20);
 
-        res.status(200).json(songs);
+        // Add default imageUrl for songs that don't have one
+        const songsWithImages = songs.map(song => ({
+            ...song.toObject(),
+            imageUrl: song.imageUrl || '/cover-images/1.jpg'
+        }));
+
+        res.status(200).json(songsWithImages);
     } catch (error) {
         console.error("Error searching songs:", error);
         res.status(500).json({ message: "Server error" });

@@ -14,6 +14,11 @@ const songSchema = new mongoose.Schema({
         required : true,
         unique : true
     },
+    imageUrl : {
+        type : String,
+        required : false,
+        default : '/cover-images/1.jpg'
+    },
     duration : {
         type: Number,
         required : true
