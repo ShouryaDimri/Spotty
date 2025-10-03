@@ -166,12 +166,15 @@
   outline: none !important;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
   background: rgb(24 24 27) !important;
+  box-sizing: border-box !important;
 }
 
 .queue-panel * {
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
+  border-width: 0 !important;
+  border-style: none !important;
 }
 
 .queue-panel::before,
