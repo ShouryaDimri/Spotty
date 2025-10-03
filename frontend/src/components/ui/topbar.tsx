@@ -132,18 +132,23 @@ const Topbar = () => {
             formData.append('duration', '0'); // Will be calculated on server
 
 
-            await axiosInstance.post('/admin/upload-song', formData, {
+            const response = await axiosInstance.post('/admin/upload-song', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
                 timeout: 60000, // 60 seconds timeout for file uploads
             });
 
-            // Show success message
-            const successMessage = document.createElement('div');
-            successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-            successMessage.textContent = 'Song uploaded successfully!';
-            document.body.appendChild(successMessage);
+            // Check if response indicates success
+            if (response.data?.success) {
+                // Show success message
+                const successMessage = document.createElement('div');
+                successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                successMessage.textContent = response.data.message || 'Song uploaded successfully!';
+                document.body.appendChild(successMessage);
+            } else {
+                throw new Error(response.data?.message || 'Upload failed');
+            }
             
             // Remove message after 3 seconds
             setTimeout(() => {
