@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import { axiosInstance } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Loader, Paperclip, X, Download, Image, FileText, Music, Video, MoreVertical, Edit, Trash2, Reply } from "lucide-react";
+import { Send, Loader, Paperclip, X, Download, Image, FileText, Music, Video, MoreVertical, Edit, Trash2, Reply, Check, CheckCheck, ArrowLeft } from "lucide-react";
 import { io, Socket } from "socket.io-client";
 
 interface User {
@@ -36,10 +36,6 @@ const ChatPg = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  
-  // Ensure arrays are always arrays
-  const safeUsers = Array.isArray(users) ? users : [];
-  const safeMessages = Array.isArray(messages) ? messages : [];
   const [newMessage, setNewMessage] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -52,24 +48,36 @@ const ChatPg = () => {
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [showUsersList, setShowUsersList] = useState(true);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
+
+  // Safe array getters
+  const safeUsers = Array.isArray(users) ? users : [];
+  const safeMessages = Array.isArray(messages) ? messages : [];
+
+  // Auto-focus edit input when editing
+  useEffect(() => {
+    if (editingMessageId && editInputRef.current) {
+      editInputRef.current.focus();
+    }
+  }, [editingMessageId]);
 
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (openMenuId && !(event.target as Element).closest('.message-menu')) {
-        closeMenu();
+        setOpenMenuId(null);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openMenuId]);
 
+  // Socket initialization
   useEffect(() => {
-    // Initialize socket in development
     if (import.meta.env.DEV) {
       const SOCKET_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || "http://localhost:5137";
       const newSocket = io(SOCKET_URL);
@@ -79,37 +87,45 @@ const ChatPg = () => {
         newSocket.emit("join_room", user.id);
       }
 
-      // Listen for incoming messages
       newSocket.on("receive_message", (message: Message) => {
-        setMessages(prev => Array.isArray(prev) ? [...prev, message] : [message]);
+        setMessages(prev => [...(Array.isArray(prev) ? prev : []), message]);
       });
 
-      // Listen for message edits
       newSocket.on("message_edited", (data: { messageId: string; message: string }) => {
-        setMessages(prev => Array.isArray(prev) ? prev.map(msg => 
-          msg._id === data.messageId ? { ...msg, message: data.message } : msg
-        ) : []);
+        setMessages(prev => 
+          (Array.isArray(prev) ? prev : []).map(msg => 
+            msg._id === data.messageId ? { ...msg, message: data.message } : msg
+          )
+        );
       });
 
-      // Listen for message deletions
       newSocket.on("message_deleted", (data: { messageId: string }) => {
-        setMessages(prev => Array.isArray(prev) ? prev.filter(msg => msg._id !== data.messageId) : []);
+        setMessages(prev => 
+          (Array.isArray(prev) ? prev : []).filter(msg => msg._id !== data.messageId)
+        );
       });
 
-      return () => {
-        newSocket.close();
-      };
+      newSocket.on("user_online", (userId: string) => {
+        setOnlineUsers(prev => new Set(prev).add(userId));
+      });
+
+      newSocket.on("user_offline", (userId: string) => {
+        setOnlineUsers(prev => {
+          const updated = new Set(prev);
+          updated.delete(userId);
+          return updated;
+        });
+      });
+
+      return () => newSocket.close();
     } else {
-      // In production, use polling for real-time updates
       const pollInterval = setInterval(() => {
         if (selectedUser) {
           fetchMessages(selectedUser.clerkId);
         }
-      }, 1000); // Poll every 1 second
+      }, 2000);
 
-      return () => {
-        clearInterval(pollInterval);
-      };
+      return () => clearInterval(pollInterval);
     }
   }, [user?.id, selectedUser]);
 
@@ -117,11 +133,11 @@ const ChatPg = () => {
     fetchUsers();
   }, []);
 
-  // Handle selected user from navigation state
   useEffect(() => {
     if (location.state?.selectedUser) {
       setSelectedUser(location.state.selectedUser);
       fetchMessages(location.state.selectedUser.clerkId);
+      setShowUsersList(false);
     }
   }, [location.state]);
 
@@ -135,40 +151,23 @@ const ChatPg = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (openMenuId && !(event.target as Element).closest('.message-menu')) {
-        closeMenu();
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [openMenuId]);
-
   const fetchUsers = async (retryCount = 0) => {
     try {
       const response = await axiosInstance.get("/users");
-        const userData = response.data as any;
-        if (Array.isArray(userData)) {
-          setUsers(userData);
-        } else if (userData && Array.isArray(userData.data)) {
-          setUsers(userData.data);
-        } else {
-          setUsers([]);
-        }
+      const userData = response.data as any;
+      
+      if (Array.isArray(userData)) {
+        setUsers(userData);
+      } else if (userData?.data && Array.isArray(userData.data)) {
+        setUsers(userData.data);
+      } else {
+        setUsers([]);
+      }
     } catch (error: any) {
       console.error("Error fetching users:", error);
       
-      // If it's a 401 error and we haven't retried too many times, wait and retry
       if (error.response?.status === 401 && retryCount < 3) {
-        console.log(`Retrying fetchUsers in 2 seconds... (attempt ${retryCount + 1})`);
-        setTimeout(() => {
-          fetchUsers(retryCount + 1);
-        }, 2000);
+        setTimeout(() => fetchUsers(retryCount + 1), 2000);
         return;
       }
     } finally {
@@ -181,23 +180,20 @@ const ChatPg = () => {
   const fetchMessages = async (userId: string, retryCount = 0) => {
     try {
       const response = await axiosInstance.get(`/messages/${userId}`);
-        const messageData = response.data as any;
-        if (Array.isArray(messageData)) {
-          setMessages(messageData);
-        } else if (messageData && Array.isArray(messageData.data)) {
-          setMessages(messageData.data);
-        } else {
-          setMessages([]);
-        }
+      const messageData = response.data as any;
+      
+      if (Array.isArray(messageData)) {
+        setMessages(messageData);
+      } else if (messageData?.data && Array.isArray(messageData.data)) {
+        setMessages(messageData.data);
+      } else {
+        setMessages([]);
+      }
     } catch (error: any) {
       console.error("Error fetching messages:", error);
       
-      // If it's a 401 error and we haven't retried too many times, wait and retry
       if (error.response?.status === 401 && retryCount < 3) {
-        console.log(`Retrying fetchMessages in 2 seconds... (attempt ${retryCount + 1})`);
-        setTimeout(() => {
-          fetchMessages(userId, retryCount + 1);
-        }, 2000);
+        setTimeout(() => fetchMessages(userId, retryCount + 1), 2000);
         return;
       }
     }
@@ -220,28 +216,21 @@ const ChatPg = () => {
         formData.append('file', selectedFile);
       }
 
-      // Include reply information if replying
       if (replyingTo) {
         formData.append('replyToId', replyingTo._id);
       }
 
       const response = await axiosInstance.post("/messages", formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-        setMessages(prev => [...prev, response.data as Message]);
+      setMessages(prev => [...prev, response.data as Message]);
       
       if (socket) {
         socket.emit("send_message", {
+          ...(response.data as any),
           senderId: user?.id,
-          receiverId: selectedUser.clerkId,
-          message: newMessage.trim(),
-          fileUrl: (response.data as any).fileUrl,
-          fileType: (response.data as any).fileType,
-          fileName: (response.data as any).fileName,
-          replyTo: (response.data as any).replyTo
+          receiverId: selectedUser.clerkId
         });
       }
       
@@ -250,6 +239,7 @@ const ChatPg = () => {
       setReplyingTo(null);
     } catch (error) {
       console.error("Error sending message:", error);
+      showToast("Failed to send message", "error");
     } finally {
       setIsUploading(false);
     }
@@ -259,7 +249,7 @@ const ChatPg = () => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 20 * 1024 * 1024) {
-        alert('File size must be less than 20MB');
+        showToast('File size must be less than 20MB', 'error');
         return;
       }
       setSelectedFile(file);
@@ -268,6 +258,9 @@ const ChatPg = () => {
 
   const removeSelectedFile = () => {
     setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const getFileIcon = (fileType: string) => {
@@ -285,111 +278,64 @@ const ChatPg = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const handleDeleteMessage = async (messageId: string) => {
-    if (!user?.id) {
-      console.error("User not authenticated");
-      return;
-    }
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 transition-all ${
+      type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    } text-white flex items-center gap-2`;
+    toast.innerHTML = `
+      ${type === 'success' ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>' : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>'}
+      <span>${message}</span>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => document.body.removeChild(toast), 300);
+    }, 3000);
+  };
 
+  const handleDeleteMessage = async (messageId: string) => {
     try {
-      console.log("Deleting message:", messageId);
-      const response = await axiosInstance.delete(`/messages/${messageId}`);
-      console.log("Delete response:", response.status);
+      await axiosInstance.delete(`/messages/${messageId}`);
+      setMessages(prev => prev.filter(msg => msg._id !== messageId));
       
-      if (response.status === 200) {
-        setMessages(prev => prev.filter(msg => msg._id !== messageId));
-        if (socket) {
-          socket.emit("delete_message", { messageId, receiverId: selectedUser?.clerkId });
-        }
-        // Show success message
-        const successDiv = document.createElement('div');
-        successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-        successDiv.textContent = 'Message deleted successfully';
-        document.body.appendChild(successDiv);
-        setTimeout(() => {
-          if (document.body.contains(successDiv)) {
-            document.body.removeChild(successDiv);
-          }
-        }, 3000);
+      if (socket) {
+        socket.emit("delete_message", { messageId, receiverId: selectedUser?.clerkId });
       }
+      
+      showToast('Message deleted successfully');
     } catch (error: any) {
       console.error("Error deleting message:", error);
-      console.error("Error details:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
-      });
-      
-      // Show error message
-      const errorDiv = document.createElement('div');
-      errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-      errorDiv.textContent = `Failed to delete message: ${error.response?.data?.message || error.message}`;
-      document.body.appendChild(errorDiv);
-      setTimeout(() => {
-        if (document.body.contains(errorDiv)) {
-          document.body.removeChild(errorDiv);
-        }
-      }, 5000);
+      showToast(`Failed to delete message: ${error.response?.data?.message || error.message}`, 'error');
     }
   };
 
   const handleEditMessage = async (messageId: string) => {
-    if (!user?.id) {
-      console.error("User not authenticated");
-      return;
-    }
-
     if (!editedMessage.trim()) return;
     
     try {
-      console.log("Editing message:", messageId, "with text:", editedMessage.trim());
       const response = await axiosInstance.put(`/messages/${messageId}`, {
         message: editedMessage.trim()
       });
-      console.log("Edit response:", response.status);
       
-      if (response.status === 200) {
-        setMessages(prev => prev.map(msg => 
-          msg._id === messageId ? { ...msg, message: (response.data as any).message } : msg
-        ));
-        if (socket) {
-          socket.emit("edit_message", { 
-            messageId, 
-            message: editedMessage.trim(),
-            receiverId: selectedUser?.clerkId 
-          });
-        }
-        setEditingMessageId(null);
-        setEditedMessage("");
-        // Show success message
-        const successDiv = document.createElement('div');
-        successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-        successDiv.textContent = 'Message edited successfully';
-        document.body.appendChild(successDiv);
-        setTimeout(() => {
-          if (document.body.contains(successDiv)) {
-            document.body.removeChild(successDiv);
-          }
-        }, 3000);
+      setMessages(prev => prev.map(msg => 
+        msg._id === messageId ? { ...msg, message: (response.data as any).message } : msg
+      ));
+      
+      if (socket) {
+        socket.emit("edit_message", { 
+          messageId, 
+          message: editedMessage.trim(),
+          receiverId: selectedUser?.clerkId 
+        });
       }
+      
+      setEditingMessageId(null);
+      setEditedMessage("");
+      showToast('Message edited successfully');
     } catch (error: any) {
       console.error("Error editing message:", error);
-      console.error("Error details:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
-      });
-      
-      // Show error message
-      const errorDiv = document.createElement('div');
-      errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-      errorDiv.textContent = `Failed to edit message: ${error.response?.data?.message || error.message}`;
-      document.body.appendChild(errorDiv);
-      setTimeout(() => {
-        if (document.body.contains(errorDiv)) {
-          document.body.removeChild(errorDiv);
-        }
-      }, 5000);
+      showToast(`Failed to edit message: ${error.response?.data?.message || error.message}`, 'error');
     }
   };
 
@@ -402,316 +348,336 @@ const ChatPg = () => {
   };
 
   const toggleMenu = (messageId: string) => {
-    console.log('Toggle menu for message:', messageId);
     setOpenMenuId(openMenuId === messageId ? null : messageId);
-  };
-
-  const closeMenu = () => {
-    console.log('Closing menu');
-    setOpenMenuId(null);
   };
 
   if (isLoading) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <Loader className="size-8 text-green-500 animate-spin" />
+      <div className="h-full flex items-center justify-center bg-gradient-to-br from-zinc-900 to-zinc-800">
+        <div className="text-center">
+          <Loader className="w-12 h-12 text-green-500 animate-spin mx-auto mb-4" />
+          <p className="text-zinc-400 text-sm">Loading conversations...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex chat-container relative" style={{ height: 'calc(100vh - 80px)' }}>
-      {/* Users List */}
+    <div className="h-full flex chat-container relative bg-zinc-900" style={{ height: 'calc(100vh - 80px)' }}>
+      {/* Users List Sidebar */}
       <div 
-        className={`border-r border-zinc-800 bg-zinc-900 transition-all duration-300 ease-in-out overflow-hidden h-full
-          ${isHovered ? 'w-80' : 'w-16'}
-          md:${isHovered ? 'w-80' : 'w-16'}
+        className={`border-r border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-800 transition-all duration-300 ease-in-out overflow-hidden h-full
+          ${isHovered ? 'w-80' : 'w-20'}
           ${showUsersList ? 'block' : 'hidden md:block'}
-          ${selectedUser && !showUsersList ? 'hidden' : 'block'}
-          md:block absolute md:relative z-20 md:z-auto
+          absolute md:relative z-20 md:z-auto shadow-2xl
         `}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="p-4 border-b border-zinc-800 flex items-center justify-center flex-shrink-0">
-          <h2 className={`text-lg font-semibold text-white transition-opacity duration-300 ${
+        <div className="p-4 border-b border-zinc-700/50 flex items-center justify-center flex-shrink-0 bg-zinc-900/50 backdrop-blur">
+          <h2 className={`text-lg font-bold bg-gradient-to-r from-green-400 to-emerald-400 text-transparent bg-clip-text transition-opacity duration-300 ${
             isHovered ? 'opacity-100' : 'opacity-0'
           }`}>
-            {isHovered ? 'Messages' : ''}
+            {isHovered ? 'Conversations' : ''}
           </h2>
           {!isHovered && (
-            <div className="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center">
-              <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+            <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/50">
+              <span className="text-white font-bold text-sm">{safeUsers.length}</span>
             </div>
           )}
         </div>
         
-        <ScrollArea className="h-[calc(100vh-160px)] overflow-y-auto max-h-[calc(100vh-160px)]">
-          <div className="flex flex-wrap gap-2 p-2">
-            {safeUsers && safeUsers.length > 0 ? safeUsers.map((chatUser) => (
-              <div
-                key={chatUser._id}
-                onClick={() => {
-                  setSelectedUser(chatUser);
-                  setShowUsersList(false); // Hide user list on mobile when selecting a user
-                }}
-                className={`relative group cursor-pointer transition-all duration-300 ${
-                  selectedUser?._id === chatUser._id 
-                    ? 'scale-110' 
-                    : 'hover:scale-105'
-                }`}
-                title={chatUser.fullName}
-              >
-                <div className={`relative w-8 h-8 rounded-full overflow-hidden border-2 transition-all duration-300 ${
-                  selectedUser?._id === chatUser._id 
-                    ? 'border-green-400 shadow-lg shadow-green-400/50' 
-                    : 'border-zinc-600 hover:border-zinc-400'
-                }`}>
-                  <img
-                    src={chatUser.imageUrl}
-                    alt={chatUser.fullName}
-                    className="w-full h-full object-cover"
-                  />
-                  {selectedUser?._id === chatUser._id && (
-                    <div className="absolute inset-0 bg-green-400/20 rounded-full" />
-                  )}
+        <ScrollArea className="h-[calc(100vh-160px)]">
+          <div className="flex flex-col gap-2 p-3">
+            {safeUsers.map((chatUser) => {
+              const isOnline = onlineUsers.has(chatUser.clerkId);
+              return (
+                <div
+                  key={chatUser._id}
+                  onClick={() => {
+                    setSelectedUser(chatUser);
+                    setShowUsersList(false);
+                  }}
+                  className={`relative group cursor-pointer transition-all duration-300 rounded-xl p-2 ${
+                    selectedUser?._id === chatUser._id 
+                      ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 scale-105 shadow-lg shadow-green-500/20' 
+                      : 'hover:bg-zinc-800/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div className={`w-12 h-12 rounded-full overflow-hidden border-2 transition-all duration-300 ${
+                        selectedUser?._id === chatUser._id 
+                          ? 'border-green-400 shadow-lg shadow-green-400/50' 
+                          : 'border-zinc-600'
+                      }`}>
+                        <img
+                          src={chatUser.imageUrl}
+                          alt={chatUser.fullName}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      {isOnline && (
+                        <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-zinc-900 shadow-lg" />
+                      )}
+                    </div>
+                    
+                    <div className={`flex-1 min-w-0 transition-opacity duration-300 ${
+                      isHovered ? 'opacity-100' : 'opacity-0 w-0'
+                    }`}>
+                      <p className="text-white font-medium text-sm truncate">{chatUser.fullName}</p>
+                      <p className="text-zinc-400 text-xs">{isOnline ? 'Online' : 'Offline'}</p>
+                    </div>
+                  </div>
                 </div>
-                {/* Tooltip on hover */}
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-zinc-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
-                  {chatUser.fullName}
-                </div>
-              </div>
-            )) : null}
-              </div>
-            </ScrollArea>
+              );
+            })}
+          </div>
+        </ScrollArea>
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col h-full">
+      <div className="flex-1 flex flex-col h-full bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900">
         {selectedUser ? (
           <>
             {/* Chat Header */}
-            <div className="p-4 border-b border-zinc-800 bg-zinc-900 flex-shrink-0">
+            <div className="p-4 border-b border-zinc-700/50 bg-zinc-900/80 backdrop-blur-xl flex-shrink-0 shadow-lg">
               <div className="flex items-center gap-3">
-                {/* Back button for mobile */}
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setShowUsersList(true)}
-                  className="md:hidden text-zinc-400 hover:text-white"
+                  className="md:hidden text-zinc-400 hover:text-white hover:bg-zinc-800"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m15 18-6-6 6-6"/>
-                  </svg>
+                  <ArrowLeft className="h-5 w-5" />
                 </Button>
-                <img
-                  src={selectedUser.imageUrl}
-                  alt={selectedUser.fullName}
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-                <h3 className="text-white font-medium">{selectedUser.fullName}</h3>
+                <div className="relative">
+                  <img
+                    src={selectedUser.imageUrl}
+                    alt={selectedUser.fullName}
+                    className="w-12 h-12 rounded-full object-cover border-2 border-green-500/50 shadow-lg shadow-green-500/20"
+                  />
+                  {onlineUsers.has(selectedUser.clerkId) && (
+                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-zinc-900" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold text-lg">{selectedUser.fullName}</h3>
+                  <p className="text-zinc-400 text-xs">
+                    {onlineUsers.has(selectedUser.clerkId) ? 'Active now' : 'Offline'}
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Messages */}
-            <ScrollArea className="flex-1 p-4 overflow-y-auto max-h-[calc(100vh-280px)]" style={{ height: 'calc(100vh - 280px)', minHeight: '400px' }}>
-              <div className="space-y-4 min-h-full">
-                {safeMessages && safeMessages.length > 0 ? safeMessages.map((message) => {
+            {/* Messages Area */}
+            <ScrollArea className="flex-1 p-4 overflow-y-auto" style={{ height: 'calc(100vh - 280px)' }}>
+              <div className="space-y-4">
+                {safeMessages.map((message) => {
                   const isMyMessage = message.senderId === user?.id;
                   const isEditing = editingMessageId === message._id;
+                  
                   return (
                     <div
                       key={message._id}
-                      className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} group`}
+                      className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} group animate-in fade-in slide-in-from-bottom-4 duration-300`}
                       onMouseEnter={() => setHoveredMessageId(message._id)}
                       onMouseLeave={() => setHoveredMessageId(null)}
                     >
-                      <div className="relative flex items-start gap-2">
-                        {/* Message Bubble */}
+                      <div className="relative max-w-[75%] sm:max-w-md lg:max-w-lg">
                         <div
-                          className={`relative max-w-[75%] sm:max-w-xs lg:max-w-md px-4 py-3 rounded-lg ${
+                          className={`relative px-4 py-3 rounded-2xl shadow-lg ${
                             isMyMessage
-                              ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-black'
-                              : 'bg-gradient-to-r from-zinc-700 to-zinc-600 text-white'
-                          } shadow-lg`}
+                              ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-black rounded-br-sm'
+                              : 'bg-gradient-to-r from-zinc-700 to-zinc-600 text-white rounded-bl-sm'
+                          }`}
                         >
-                          {/* 3-Dot Menu - Show on top right of message on hover for all messages */}
-                          {(
-                            <div className="absolute -top-2 -right-2 z-10 message-menu">
-                              {/* 3-Dot Button - Show on hover */}
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={() => toggleMenu(message._id)}
-                                className={`h-6 w-6 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-opacity duration-200 ${
-                                  hoveredMessageId === message._id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                                }`}
-                                title="More options"
-                              >
-                                <MoreVertical className="h-3 w-3" />
-                              </Button>
-                              
-                              {/* Dropdown Menu */}
-                              {openMenuId === message._id && (
-                                <div className="absolute right-0 top-8 z-50 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg py-1 min-w-[80px]">
-                                  {/* Show Edit only for own messages */}
-                                  {isMyMessage && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        console.log('Edit clicked for message:', message._id);
-                                        setEditingMessageId(message._id);
-                                        setEditedMessage(message.message || "");
-                                        closeMenu();
-                                      }}
-                                      className="w-full px-3 py-2 text-left text-sm text-white hover:bg-zinc-700 flex items-center justify-center"
-                                      title="Edit"
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </button>
-                                  )}
+                          {/* 3-Dot Menu */}
+                          <div className="absolute -top-2 -right-2 z-10 message-menu">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => toggleMenu(message._id)}
+                              className={`h-7 w-7 rounded-full bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-all duration-200 shadow-lg ${
+                                hoveredMessageId === message._id || openMenuId === message._id ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+                              }`}
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                            
+                            {openMenuId === message._id && (
+                              <div className="absolute right-0 top-10 z-50 bg-zinc-800 border border-zinc-700 rounded-xl shadow-2xl py-2 min-w-[140px] animate-in fade-in slide-in-from-top-2 duration-200">
+                                {isMyMessage && (
                                   <button
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      console.log('Reply clicked for message:', message._id);
-                                      handleReplyToMessage(message);
-                                      closeMenu();
+                                    onClick={() => {
+                                      setEditingMessageId(message._id);
+                                      setEditedMessage(message.message || "");
+                                      setOpenMenuId(null);
                                     }}
-                                    className="w-full px-3 py-2 text-left text-sm text-white hover:bg-zinc-700 flex items-center justify-center"
-                                    title="Reply"
+                                    className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-zinc-700/50 flex items-center gap-3 transition-colors"
                                   >
-                                    <Reply className="h-4 w-4" />
+                                    <Edit className="h-4 w-4 text-blue-400" />
+                                    <span>Edit</span>
                                   </button>
-                                  {/* Show Delete only for own messages */}
-                                  {isMyMessage && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        console.log('Delete clicked for message:', message._id);
-                                        handleDeleteMessage(message._id);
-                                        closeMenu();
-                                      }}
-                                      className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-red-900/20 flex items-center justify-center"
-                                      title="Delete"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </button>
-                                  )}
+                                )}
+                                <button
+                                  onClick={() => {
+                                    handleReplyToMessage(message);
+                                    setOpenMenuId(null);
+                                  }}
+                                  className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-zinc-700/50 flex items-center gap-3 transition-colors"
+                                >
+                                  <Reply className="h-4 w-4 text-green-400" />
+                                  <span>Reply</span>
+                                </button>
+                                {isMyMessage && (
+                                  <button
+                                    onClick={() => {
+                                      handleDeleteMessage(message._id);
+                                      setOpenMenuId(null);
+                                    }}
+                                    className="w-full px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-900/20 flex items-center gap-3 transition-colors border-t border-zinc-700/50 mt-1"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span>Delete</span>
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Reply Preview */}
+                          {message.replyTo && (
+                            <div className={`mb-2 p-2 rounded-lg border-l-4 ${
+                              isMyMessage 
+                                ? 'bg-black/20 border-black/40' 
+                                : 'bg-white/10 border-white/30'
+                            }`}>
+                              <p className="text-xs font-semibold opacity-80 mb-1">{message.replyTo.senderName}</p>
+                              <p className="text-sm truncate opacity-90">{message.replyTo.message}</p>
+                            </div>
+                          )}
+                          
+                          {/* Message Content */}
+                          {isEditing ? (
+                            <div className="space-y-2">
+                              <input
+                                ref={editInputRef}
+                                type="text"
+                                value={editedMessage}
+                                onChange={(e) => setEditedMessage(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleEditMessage(message._id);
+                                  if (e.key === 'Escape') {
+                                    setEditingMessageId(null);
+                                    setEditedMessage("");
+                                  }
+                                }}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-white/30"
+                              />
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleEditMessage(message._id)}
+                                  className="bg-white/20 hover:bg-white/30 text-xs h-7 px-3"
+                                >
+                                  <Check className="h-3 w-3 mr-1" />
+                                  Save
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setEditingMessageId(null);
+                                    setEditedMessage("");
+                                  }}
+                                  className="text-xs h-7 px-3 hover:bg-white/10"
+                                >
+                                  <X className="h-3 w-3 mr-1" />
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            message.message && (
+                              <p className="text-sm leading-relaxed break-words">{message.message}</p>
+                            )
+                          )}
+                          
+                          {/* File Attachment */}
+                          {message.fileUrl && (
+                            <div className="mt-2 pt-2 border-t border-opacity-20">
+                              {message.fileType?.startsWith('image/') ? (
+                                <div className="relative group/image">
+                                  <img
+                                    src={message.fileUrl}
+                                    alt={message.fileName}
+                                    className="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => window.open(message.fileUrl, '_blank')}
+                                  />
+                                  <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 rounded-lg transition-colors flex items-center justify-center">
+                                    <Download className="h-6 w-6 text-white opacity-0 group-hover/image:opacity-100 transition-opacity" />
+                                  </div>
+                                  <p className="text-xs mt-1 opacity-70">{message.fileName}</p>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-3 p-3 bg-black/20 rounded-lg hover:bg-black/30 transition-colors">
+                                  <div className="p-2 bg-white/10 rounded-lg">
+                                    {getFileIcon(message.fileType || '')}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate">{message.fileName}</p>
+                                    <p className="text-xs opacity-70">{message.fileType}</p>
+                                  </div>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => window.open(message.fileUrl, '_blank')}
+                                    className="h-8 w-8 hover:bg-white/20 rounded-lg"
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </Button>
                                 </div>
                               )}
                             </div>
                           )}
-                        {/* Reply Preview */}
-                        {message.replyTo && (
-                          <div className={`mb-2 p-2 rounded border-l-2 ${
-                            isMyMessage 
-                              ? 'bg-black/20 border-black/40' 
-                              : 'bg-white/10 border-white/30'
-                          }`}>
-                            <p className="text-xs opacity-70">{message.replyTo.senderName}</p>
-                            <p className="text-sm truncate">{message.replyTo.message}</p>
-                          </div>
-                        )}
-                        
-                        {/* Text Message - Edit Mode */}
-                        {isEditing ? (
-                          <div className="space-y-2">
-                            <input
-                              type="text"
-                              value={editedMessage}
-                              onChange={(e) => setEditedMessage(e.target.value)}
-                              className="w-full px-2 py-1 bg-white/20 border border-white/30 rounded text-sm"
-                              autoFocus
-                            />
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() => handleEditMessage(message._id)}
-                                className="bg-white/20 hover:bg-white/30 text-xs"
-                              >
-                                Save
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => {
-                                  setEditingMessageId(null);
-                                  setEditedMessage("");
-                                }}
-                                className="text-xs"
-                              >
-                                Cancel
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          message.message && (
-                            <p className="mb-2">{message.message}</p>
-                          )
-                        )}
-                        
-                        {/* File Attachment */}
-                        {message.fileUrl && (
-                          <div className="border-t border-opacity-20 pt-2 mt-2">
-                            {message.fileType?.startsWith('image/') ? (
-                              <div className="relative">
-                                <img
-                                  src={message.fileUrl}
-                                  alt={message.fileName}
-                                  className="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                                  onClick={() => window.open(message.fileUrl, '_blank')}
-                                />
-                                <p className="text-xs mt-1 opacity-80">{message.fileName}</p>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2 p-2 bg-black/20 rounded-lg">
-                                {getFileIcon(message.fileType || '')}
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">{message.fileName}</p>
-                                  <p className="text-xs opacity-80">{message.fileType}</p>
-                                </div>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => window.open(message.fileUrl, '_blank')}
-                                  className="h-8 w-8 hover:bg-white/20"
-                                >
-                                  <Download className="h-4 w-4" />
-                                </Button>
-                              </div>
+                          
+                          {/* Timestamp */}
+                          <div className="flex items-center gap-1 mt-2">
+                            <p className={`text-xs ${
+                              isMyMessage ? 'text-black/60' : 'text-zinc-300/70'
+                            }`}>
+                              {new Date(message.createdAt).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                            {isMyMessage && (
+                              <CheckCheck className={`h-3 w-3 ${
+                                isMyMessage ? 'text-black/60' : 'text-zinc-300/70'
+                              }`} />
                             )}
                           </div>
-                        )}
-                        
-                        <p className={`text-xs mt-2 ${
-                          isMyMessage ? 'text-black/70' : 'text-zinc-400'
-                        }`}>
-                          {new Date(message.createdAt).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      </div>
+                        </div>
                       </div>
                     </div>
                   );
-                }) : null}
+                })}
                 <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
 
             {/* Message Input */}
-            <div className="border-t border-zinc-800 bg-gradient-to-r from-zinc-900 to-zinc-800 chat-input-area">
+            <div className="border-t border-zinc-700/50 bg-zinc-900/80 backdrop-blur-xl chat-input-area shadow-2xl">
               <form onSubmit={sendMessage} className="p-4">
                 {/* Reply Preview */}
                 {replyingTo && (
-                  <div className="mb-3 p-3 bg-zinc-700/50 rounded-lg flex items-start gap-3">
-                    <Reply className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
+                  <div className="mb-3 p-3 bg-zinc-800/50 rounded-xl flex items-start gap-3 border border-zinc-700/50">
+                    <div className="p-2 bg-green-500/20 rounded-lg">
+                      <Reply className="h-4 w-4 text-green-400" />
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-zinc-400 text-xs">Replying to</p>
+                      <p className="text-zinc-400 text-xs font-semibold mb-1">Replying to</p>
                       <p className="text-white text-sm truncate">{replyingTo.message}</p>
                     </div>
                     <Button
@@ -719,7 +685,7 @@ const ChatPg = () => {
                       variant="ghost"
                       size="icon"
                       onClick={cancelReply}
-                      className="text-zinc-400 hover:text-white w-8 h-8"
+                      className="text-zinc-400 hover:text-white hover:bg-zinc-700 w-8 h-8 rounded-lg"
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -728,20 +694,20 @@ const ChatPg = () => {
                 
                 {/* File Preview */}
                 {selectedFile && (
-                  <div className="mb-3 p-3 bg-zinc-700/50 rounded-lg flex items-center gap-3">
-                    <div className="flex items-center gap-2 flex-1">
+                  <div className="mb-3 p-3 bg-zinc-800/50 rounded-xl flex items-center gap-3 border border-zinc-700/50">
+                    <div className="p-2 bg-blue-500/20 rounded-lg">
                       {getFileIcon(selectedFile.type)}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white text-sm font-medium truncate">{selectedFile.name}</p>
-                        <p className="text-zinc-400 text-xs">{formatFileSize(selectedFile.size)}</p>
-                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm font-medium truncate">{selectedFile.name}</p>
+                      <p className="text-zinc-400 text-xs">{formatFileSize(selectedFile.size)}</p>
                     </div>
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
                       onClick={removeSelectedFile}
-                      className="text-zinc-400 hover:text-white w-8 h-8"
+                      className="text-zinc-400 hover:text-white hover:bg-zinc-700 w-8 h-8 rounded-lg"
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -752,6 +718,7 @@ const ChatPg = () => {
                   {/* File Upload Button */}
                   <label className="relative">
                     <input
+                      ref={fileInputRef}
                       type="file"
                       onChange={handleFileSelect}
                       className="hidden"
@@ -761,7 +728,7 @@ const ChatPg = () => {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="text-zinc-400 hover:text-white hover:bg-zinc-700/50"
+                      className="text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-xl h-11 w-11 transition-all duration-200"
                       asChild
                     >
                       <span>
@@ -776,19 +743,20 @@ const ChatPg = () => {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder={selectedFile ? "Add a message (optional)..." : "Type a message..."}
-                    className="flex-1 px-3 sm:px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm sm:text-base"
+                    className="flex-1 px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm transition-all duration-200"
+                    disabled={isUploading}
                   />
                   
                   {/* Send Button */}
                   <Button 
                     type="submit" 
                     disabled={isUploading || (!newMessage.trim() && !selectedFile)}
-                    className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-black disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-black disabled:opacity-50 disabled:cursor-not-allowed rounded-xl h-11 w-11 p-0 shadow-lg shadow-green-500/30 transition-all duration-200 hover:scale-105 active:scale-95"
                   >
                     {isUploading ? (
-                      <Loader className="h-4 w-4 animate-spin" />
+                      <Loader className="h-5 w-5 animate-spin" />
                     ) : (
-                      <Send className="h-4 w-4" />
+                      <Send className="h-5 w-5" />
                     )}
                   </Button>
                 </div>
@@ -797,9 +765,18 @@ const ChatPg = () => {
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <h3 className="text-xl font-medium text-white mb-2">Select a conversation</h3>
-              <p className="text-zinc-400">Choose someone from your contacts to start chatting</p>
+            <div className="text-center max-w-md px-4">
+              <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-green-500/30">
+                <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3 bg-gradient-to-r from-green-400 to-emerald-400 text-transparent bg-clip-text">
+                Start a Conversation
+              </h3>
+              <p className="text-zinc-400 text-sm leading-relaxed">
+                Select someone from your contacts to begin chatting. Your messages are encrypted and secure.
+              </p>
             </div>
           </div>
         )}
