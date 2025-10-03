@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { axiosInstance } from "@/lib/axios";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader } from "lucide-react";
+import { Loader, MessageCircle, User } from "lucide-react";
 import { io, Socket } from "socket.io-client";
+import { useNavigate } from "react-router-dom";
 
 interface User {
   _id: string;
@@ -25,10 +26,12 @@ interface OnlineUser {
 
 const FriendsActivity = () => {
   const { user } = useUser();
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<Map<string, OnlineUser>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [, setSocket] = useState<Socket | null>(null);
+  const [hoveredUserId, setHoveredUserId] = useState<string | null>(null);
 
   useEffect(() => {
     // Only initialize socket in development (Socket.io not available in Vercel serverless)
@@ -221,7 +224,11 @@ const FriendsActivity = () => {
         <div className="p-4 space-y-3">
           {/* Current User */}
           {user && (
-            <div className="relative group">
+            <div 
+              className="relative group"
+              onMouseEnter={() => setHoveredUserId('current-user')}
+              onMouseLeave={() => setHoveredUserId(null)}
+            >
               <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-300" />
               <div className="relative flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-zinc-800/80 to-zinc-700/80 backdrop-blur-sm border border-green-500/20 shadow-lg">
                 <div className="relative">
@@ -249,6 +256,22 @@ const FriendsActivity = () => {
                     Online
                   </div>
                 </div>
+                
+                {/* Hover Action Buttons for Current User */}
+                {hoveredUserId === 'current-user' && (
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                    <button
+                      onClick={() => {
+                        // Navigate to profile settings or show profile modal
+                        console.log('View your profile');
+                      }}
+                      className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white rounded-full shadow-lg hover:scale-110 transition-all duration-200"
+                      title="View Profile"
+                    >
+                      <User className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -258,9 +281,15 @@ const FriendsActivity = () => {
             const userStatus = onlineUsers.get(otherUser.clerkId);
             const status = userStatus?.status || 'offline';
             const isListening = userStatus?.currentSong && status === 'online';
+            const isHovered = hoveredUserId === otherUser._id;
             
             return (
-              <div key={otherUser._id} className="relative group">
+              <div 
+                key={otherUser._id} 
+                className="relative group"
+                onMouseEnter={() => setHoveredUserId(otherUser._id)}
+                onMouseLeave={() => setHoveredUserId(null)}
+              >
                 <div className={`absolute inset-0 rounded-xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300 ${
                   status === 'online' ? 'bg-gradient-to-r from-blue-500/10 to-cyan-500/10' :
                   status === 'idle' ? 'bg-gradient-to-r from-yellow-500/10 to-orange-500/10' :
@@ -329,6 +358,29 @@ const FriendsActivity = () => {
                           className="w-full h-full object-cover"
                         />
                       </div>
+                    </div>
+                  )}
+                  
+                  {/* Hover Action Buttons */}
+                  {isHovered && (
+                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                      <button
+                        onClick={() => navigate('/messages')}
+                        className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white rounded-full shadow-lg hover:scale-110 transition-all duration-200"
+                        title="Send Message"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          // Navigate to profile or show profile modal
+                          console.log('View profile for:', otherUser.fullName);
+                        }}
+                        className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white rounded-full shadow-lg hover:scale-110 transition-all duration-200"
+                        title="View Profile"
+                      >
+                        <User className="w-4 h-4" />
+                      </button>
                     </div>
                   )}
                 </div>
