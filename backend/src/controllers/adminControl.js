@@ -25,39 +25,117 @@ export const createSong = async (req, res) => {
     console.log("Auth info:", req.auth);
     console.log("Headers:", req.headers);
     
-    if (!req.files || !req.files.audioFile) {
-      return res.status(400).json({ message: "Audio file is required" });
+    // Validate required fields
+    if (!req.body.title || !req.body.artist) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Title and artist are required",
+        code: "MISSING_REQUIRED_FIELDS"
+      });
     }
-    const { title, artist, albumId, duration } = req.body;
+    
+    if (!req.files || !req.files.audioFile) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Audio file is required",
+        code: "MISSING_AUDIO_FILE"
+      });
+    }
+    
+    // Validate file types
     const audioFile = req.files.audioFile;
+    const allowedAudioTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a'];
+    if (!allowedAudioTypes.includes(audioFile.mimetype)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid audio file type. Supported formats: MP3, WAV, OGG, M4A",
+        code: "INVALID_AUDIO_TYPE"
+      });
+    }
+    
+    const { title, artist, albumId, duration } = req.body;
     const imageFile = req.files.imageFile;
 
-    const audioUrl = await uploadToCloudinary(audioFile);
-    let imageUrl = '/cover-images/1.jpg'; // Default image
-    
+    // Validate image file if provided
     if (imageFile) {
-        imageUrl = await uploadToCloudinary(imageFile);
+      const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedImageTypes.includes(imageFile.mimetype)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid image file type. Supported formats: JPEG, PNG, WEBP",
+          code: "INVALID_IMAGE_TYPE"
+        });
+      }
     }
+
+    // Upload files to Cloudinary
+    let audioUrl, imageUrl;
+    try {
+      audioUrl = await uploadToCloudinary(audioFile);
+      imageUrl = imageFile ? await uploadToCloudinary(imageFile) : '/cover-images/1.jpg';
+    } catch (uploadError) {
+      console.error("Cloudinary upload error:", uploadError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to upload files to cloud storage",
+        code: "UPLOAD_FAILED"
+      });
+    }
+    
+    // Create song record
     const song = new Song({
-        title,
-        artist,
+        title: title.trim(),
+        artist: artist.trim(),
         audioUrl,
         imageUrl,
         albumId: albumId || null,
-        duration: duration || 0,
+        duration: parseInt(duration) || 0,
     });
-    await song.save()
+    
+    await song.save();
 
+    // Update album if provided
     if(albumId){
-        await Album.findByIdAndUpdate(albumId, {
-            $push: {songs: song._id},
-        });
+        try {
+            await Album.findByIdAndUpdate(albumId, {
+                $push: {songs: song._id},
+            });
+        } catch (albumError) {
+            console.error("Error updating album:", albumError);
+            // Don't fail the song creation if album update fails
+        }
     }
     
-    res.status(201).json(song);
+    res.status(201).json({
+      success: true,
+      message: "Song created successfully",
+      data: song
+    });
   } catch (error) {
     console.error("Error creating song:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    
+    // Handle specific error types
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: "Validation error: " + error.message,
+        code: "VALIDATION_ERROR"
+      });
+    }
+    
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Song with this title and artist already exists",
+        code: "DUPLICATE_SONG"
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false,
+      message: "Internal server error",
+      code: "INTERNAL_ERROR"
+    });
  }
 
 };
@@ -68,19 +146,50 @@ export const deleteSong = async (req, res) => {
         await connectDB();
         
         const { id } = req.params;
-        const song = await Song.findById(id);
-
-        if (song.albumId){
-            await Album.findByIdAndUpdate(song.albumId, {
-                $pull: { songs: song._id }
+        
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Song ID is required",
+                code: "MISSING_SONG_ID"
             });
         }
+        
+        const song = await Song.findById(id);
+        
+        if (!song) {
+            return res.status(404).json({ 
+                success: false,
+                message: "Song not found",
+                code: "SONG_NOT_FOUND"
+            });
+        }
+
+        // Remove song from album if it belongs to one
+        if (song.albumId){
+            try {
+                await Album.findByIdAndUpdate(song.albumId, {
+                    $pull: { songs: song._id }
+                });
+            } catch (albumError) {
+                console.error("Error updating album:", albumError);
+                // Continue with song deletion even if album update fails
+            }
+        }
+        
         await Song.findByIdAndDelete(id);
-        res.status(200).json({ message: "Song deleted successfully" });
+        res.status(200).json({ 
+            success: true,
+            message: "Song deleted successfully"
+        });
     
 } catch (error) {
         console.error("Error deleting song:", error);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ 
+            success: false,
+            message: "Internal server error",
+            code: "INTERNAL_ERROR"
+        });
     }
 };
 

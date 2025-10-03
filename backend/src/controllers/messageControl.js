@@ -109,31 +109,67 @@ export const editMessage = async (req, res) => {
 
         if (!userId) {
             console.log("No userId found in request");
-            return res.status(401).json({ message: "Authentication required" });
+            return res.status(401).json({ 
+                success: false,
+                message: "Authentication required",
+                code: "UNAUTHORIZED"
+            });
+        }
+
+        if (!messageId) {
+            return res.status(400).json({
+                success: false,
+                message: "Message ID is required",
+                code: "MISSING_MESSAGE_ID"
+            });
+        }
+
+        if (!message || message.trim().length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Message content is required",
+                code: "MISSING_MESSAGE_CONTENT"
+            });
         }
 
         const msg = await Message.findById(messageId);
         
         if (!msg) {
             console.log("Message not found:", messageId);
-            return res.status(404).json({ message: "Message not found" });
+            return res.status(404).json({ 
+                success: false,
+                message: "Message not found",
+                code: "MESSAGE_NOT_FOUND"
+            });
         }
 
         console.log("Message found:", { senderId: msg.senderId, userId });
 
         if (msg.senderId !== userId) {
             console.log("User not authorized to edit message");
-            return res.status(403).json({ message: "Not authorized to edit this message" });
+            return res.status(403).json({ 
+                success: false,
+                message: "Not authorized to edit this message",
+                code: "FORBIDDEN"
+            });
         }
 
-        msg.message = message;
+        msg.message = message.trim();
         await msg.save();
 
         console.log("Message edited successfully");
-        res.status(200).json(msg);
+        res.status(200).json({
+            success: true,
+            message: "Message edited successfully",
+            data: msg
+        });
     } catch (error) {
         console.error("Error editing message:", error);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ 
+            success: false,
+            message: "Internal server error",
+            code: "INTERNAL_ERROR"
+        });
     }
 };
 
