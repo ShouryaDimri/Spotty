@@ -6,7 +6,6 @@ import { useState, useEffect } from "react"
 import { axiosInstance } from "@/lib/axios"
 
 const Topbar = () => {
-    const [isAdmin, setIsAdmin] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
@@ -24,19 +23,8 @@ const Topbar = () => {
 
     useEffect(() => {
         const checkAdminStatus = async () => {
-            // Only check admin status if user is signed in
-            if (!user) {
-                setIsAdmin(false);
-                return;
-            }
-
-            try {
-                const response = await axiosInstance.get("/admin/check");
-                setIsAdmin((response.data as any)?.admin || false);
-            } catch (error) {
-                // If admin check fails, still allow upload for regular users
-                setIsAdmin(true);
-            }
+            // Admin status check removed - upload available for all users
+            return;
         };
 
         checkAdminStatus();
