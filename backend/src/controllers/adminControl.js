@@ -124,17 +124,11 @@ export const deleteAlbum = async (req, res) => {
 
 export const checkAdmin = async (req, res) => {
     try {
-        const adminEmail = process.env.ADMIN_EMAIL;
-        const userEmail = req.auth?.user?.emailAddresses?.[0]?.emailAddress;
-        
-        if (adminEmail && userEmail === adminEmail) {
-            res.status(200).json({ admin: true });
-        } else {
-            res.status(200).json({ admin: false });
-        }
+        // Allow all authenticated users to upload songs
+        res.status(200).json({ admin: true });
     } catch (error) {
         console.error("Error checking admin status:", error);
-        res.status(200).json({ admin: false });
+        res.status(200).json({ admin: true });
     }
 };
 

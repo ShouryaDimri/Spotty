@@ -51,24 +51,9 @@ if (process.env.NOW_REGION) {
   });
 }
 
-// Configure CORS for production
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://spotty-kohl.vercel.app",
-  "https://spotty-git-master-shouryadimris-projects.vercel.app"
-];
-
+// Configure CORS for production - more permissive for Vercel
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin) || origin.includes('vercel.app')) {
-      return callback(null, true);
-    }
-    
-    return callback(new Error('Not allowed by CORS'));
-  },
+  origin: true, // Allow all origins temporarily for debugging
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
@@ -82,7 +67,7 @@ app.use(fileupload({
   tempFileDir: process.env.NOW_REGION ? '/tmp' : path.join(__dirname, 'tmp'),
   createParentPath: true,
   limits: { 
-    fileSize: 10 * 1024 * 1024, // 10MB limit
+    fileSize: 50 * 1024 * 1024, // 50MB limit for larger audio files
     files: 2 // Maximum 2 files (audio + image)
   }
 }));
