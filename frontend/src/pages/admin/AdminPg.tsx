@@ -44,8 +44,8 @@ const AdminPg = () => {
 			console.log("Processed data:", { statsData, songsData, albumsData });
 			
 			setStats(statsData.success ? statsData : statsData);
-			setSongs(songsData.success ? songsData.data : songsData);
-			setAlbums(albumsData);
+			setSongs(songsData.success ? (Array.isArray(songsData.data) ? songsData.data : []) : (Array.isArray(songsData) ? songsData : []));
+			setAlbums(Array.isArray(albumsData) ? albumsData : []);
 			
 			console.log("Admin data set successfully");
 		} catch (error) {

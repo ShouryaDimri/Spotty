@@ -71,13 +71,23 @@ export const createSong = async (req, res) => {
     // Upload files to Cloudinary
     let audioUrl, imageUrl;
     try {
+      console.log("Uploading audio file to Cloudinary...");
       audioUrl = await uploadToCloudinary(audioFile);
-      imageUrl = imageFile ? await uploadToCloudinary(imageFile) : '/cover-images/1.jpg';
+      console.log("Audio uploaded successfully:", audioUrl);
+      
+      if (imageFile) {
+        console.log("Uploading image file to Cloudinary...");
+        imageUrl = await uploadToCloudinary(imageFile);
+        console.log("Image uploaded successfully:", imageUrl);
+      } else {
+        console.log("No image file provided, using default");
+        imageUrl = '/cover-images/1.jpg';
+      }
     } catch (uploadError) {
       console.error("Cloudinary upload error:", uploadError);
       return res.status(500).json({
         success: false,
-        message: "Failed to upload files to cloud storage",
+        message: "Failed to upload files to cloud storage: " + uploadError.message,
         code: "UPLOAD_FAILED"
       });
     }

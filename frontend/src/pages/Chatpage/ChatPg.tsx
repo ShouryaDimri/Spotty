@@ -428,7 +428,7 @@ const ChatPg = () => {
           )}
         </div>
         
-        <ScrollArea className="h-[calc(100vh-160px)]">
+        <ScrollArea className="h-[calc(100vh-160px)] overflow-y-auto">
           <div className="flex flex-wrap gap-2 p-2">
             {users && Array.isArray(users) ? users.map((chatUser) => (
               <div
@@ -496,7 +496,7 @@ const ChatPg = () => {
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4" style={{ height: 'calc(100vh - 280px)', minHeight: '400px' }}>
+            <ScrollArea className="flex-1 p-4 overflow-y-auto" style={{ height: 'calc(100vh - 280px)', minHeight: '400px' }}>
               <div className="space-y-4 min-h-full">
                 {messages && Array.isArray(messages) ? messages.map((message) => {
                   const isMyMessage = message.senderId === user?.id;

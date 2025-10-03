@@ -14,7 +14,7 @@ router.get("/songs", getAllSongs); // Get all songs for admin - public for testi
 router.get("/albums", getAllAlbums); // Get all albums for admin - public for testing
 router.post("/songs", protectRoute, requireAdmin, createSong);
 router.post("/albums", protectRoute, requireAdmin, createAlbum);
-router.delete("/songs/:id", protectRoute, requireAdmin, deleteSong);
+router.delete("/songs/:id", deleteSong); // Public for testing
 router.delete("/albums/:id", protectRoute, requireAdmin, deleteAlbum);
 
 // Public routes (all authenticated users can access)

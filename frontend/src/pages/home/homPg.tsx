@@ -61,7 +61,7 @@ const HomePg = () => {
     <div className="h-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
       <Topbar />
       
-      <ScrollArea className="h-[calc(100vh-80px)]">
+      <ScrollArea className="h-[calc(100vh-80px)] overflow-y-auto">
         {/* Hero Section */}
         <div className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 via-purple-600/5 to-emerald-600/10" />
