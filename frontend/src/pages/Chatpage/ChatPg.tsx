@@ -48,6 +48,20 @@ const ChatPg = () => {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openMenuId && !(event.target as Element).closest('.message-menu')) {
+        closeMenu();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openMenuId]);
+
   useEffect(() => {
     // Initialize socket in development
     if (import.meta.env.DEV) {
@@ -331,10 +345,12 @@ const ChatPg = () => {
   };
 
   const toggleMenu = (messageId: string) => {
+    console.log('Toggle menu for message:', messageId);
     setOpenMenuId(openMenuId === messageId ? null : messageId);
   };
 
   const closeMenu = () => {
+    console.log('Closing menu');
     setOpenMenuId(null);
   };
 
@@ -464,7 +480,7 @@ const ChatPg = () => {
                         >
                           {/* 3-Dot Menu - Show on top right of message on hover, only for own messages */}
                           {isMyMessage && (
-                            <div className="absolute -top-2 -right-2 z-10">
+                            <div className="absolute -top-2 -right-2 z-10 message-menu">
                               {/* 3-Dot Button - Show on hover */}
                               <Button
                                 size="icon"
@@ -482,7 +498,10 @@ const ChatPg = () => {
                               {openMenuId === message._id && (
                                 <div className="absolute right-0 top-8 z-50 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg py-1 min-w-[80px]">
                                   <button
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      console.log('Edit clicked for message:', message._id);
                                       setEditingMessageId(message._id);
                                       setEditedMessage(message.message || "");
                                       closeMenu();
@@ -493,7 +512,10 @@ const ChatPg = () => {
                                     <Edit className="h-4 w-4" />
                                   </button>
                                   <button
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      console.log('Reply clicked for message:', message._id);
                                       handleReplyToMessage(message);
                                       closeMenu();
                                     }}
@@ -503,7 +525,10 @@ const ChatPg = () => {
                                     <Reply className="h-4 w-4" />
                                   </button>
                                   <button
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      console.log('Delete clicked for message:', message._id);
                                       handleDeleteMessage(message._id);
                                       closeMenu();
                                     }}
