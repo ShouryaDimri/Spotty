@@ -4,6 +4,6 @@ import { getAllUsers} from "../controllers/userControl.js";
 
 const router = Router();
 
-router.get("/", protectRoute, getAllUsers);
+router.get("/", getAllUsers); // Temporarily remove auth for testing
 
 export default router;

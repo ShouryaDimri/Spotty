@@ -6,21 +6,20 @@ export const getAllSongs = async(req, res) => {
         // Ensure database connection in serverless environment
         await connectDB();
         
-        const songs = await Song.aggregate(                        // fetch top 6 songs from mongoDB
-            { $sample: { size: 6 } } ,
-            { $project: {
-                _id:1,
-                title:1,
-                artist:1,
-                imageUrl:1,
-                audioUrl:1,
-            }}
-        );
+        // Use find instead of aggregate for better compatibility
+        const songs = await Song.find({})
+            .select('_id title artist imageUrl audioUrl duration')
+            .limit(6)
+            .sort({ createdAt: -1 });
 
         res.status(200).json(songs);    
     } catch (error) {
         console.error("Error fetching songs:", error);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ 
+            success: false,
+            message: "Internal server error",
+            code: "INTERNAL_ERROR"
+        });
     }
 }
 

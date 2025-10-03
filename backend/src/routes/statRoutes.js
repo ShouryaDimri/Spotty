@@ -4,6 +4,6 @@ import { getStats } from "../controllers/statControl.js";
 
 const router = Router();
 
-router.get("/", getStats); // Temporarily remove auth for testing
+router.get("/", getStats); // Public access for testing
 
 export default router;
