@@ -163,6 +163,13 @@
   bottom: 6rem !important;
   right: 1rem !important;
   border: none !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  background: rgb(24 24 27) !important;
+}
+
+.queue-panel * {
+  border: none !important;
+  outline: none !important;
 }
 
 .queue-backdrop {

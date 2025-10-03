@@ -72,7 +72,7 @@ const SearchPg = () => {
 					/>
 				</div>
 
-				<ScrollArea className="h-[calc(100vh-140px)] overflow-y-auto">
+				<ScrollArea className="h-[calc(100vh-140px)] overflow-y-auto max-h-[calc(100vh-140px)]">
 					{isLoading ? (
 						<div className="flex justify-center py-8">
 							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>

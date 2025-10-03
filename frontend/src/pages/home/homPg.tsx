@@ -24,8 +24,8 @@ const HomePg = () => {
           axiosInstance.get("/songs/trending")
         ]);
         
-        setFeaturedSongs(featuredRes.data);
-        setTrendingSongs(trendingRes.data);
+        setFeaturedSongs(Array.isArray(featuredRes.data) ? featuredRes.data : []);
+        setTrendingSongs(Array.isArray(trendingRes.data) ? trendingRes.data : []);
       } catch (error) {
         console.error("Error fetching home data:", error);
       } finally {
@@ -61,7 +61,7 @@ const HomePg = () => {
     <div className="h-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
       <Topbar />
       
-      <ScrollArea className="h-[calc(100vh-80px)] overflow-y-auto">
+      <ScrollArea className="h-[calc(100vh-80px)] overflow-y-auto max-h-[calc(100vh-80px)]">
         {/* Hero Section */}
         <div className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 via-purple-600/5 to-emerald-600/10" />

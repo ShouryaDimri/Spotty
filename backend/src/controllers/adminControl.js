@@ -58,14 +58,23 @@ export const createSong = async (req, res) => {
 
     // Validate image file if provided
     if (imageFile) {
+      console.log("Image file details:", {
+        name: imageFile.name,
+        mimetype: imageFile.mimetype,
+        size: imageFile.size
+      });
+      
       const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
       if (!allowedImageTypes.includes(imageFile.mimetype)) {
+        console.log("Invalid image type:", imageFile.mimetype);
         return res.status(400).json({
           success: false,
           message: "Invalid image file type. Supported formats: JPEG, PNG, WEBP",
           code: "INVALID_IMAGE_TYPE"
         });
       }
+    } else {
+      console.log("No image file provided in request");
     }
 
     // Upload files to Cloudinary
