@@ -23,6 +23,10 @@ const AudioPlayer = () => {
 			const audio = audioRef.current;
 			audio.src = currentSong.audioUrl;
 			
+			// Reset time when song changes
+			audio.currentTime = 0;
+			setCurrentTime(0);
+			
 			if (isPlaying) {
 				audio.play().catch(console.error);
 			}
@@ -38,6 +42,9 @@ const AudioPlayer = () => {
 			audio.play().catch(console.error);
 		} else {
 			audio.pause();
+			// Reset current time to 0 when pausing
+			audio.currentTime = 0;
+			setCurrentTime(0);
 		}
 	}, [isPlaying]);
 
