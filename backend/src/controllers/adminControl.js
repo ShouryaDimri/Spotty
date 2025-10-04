@@ -86,12 +86,20 @@ export const createSong = async (req, res) => {
     // Upload files to Cloudinary
     let audioUrl, imageUrl;
     try {
-      console.log("Uploading audio file to Cloudinary...");
+      console.log("Uploading audio file to Cloudinary...", {
+        name: audioFile.name,
+        size: audioFile.size,
+        mimetype: audioFile.mimetype
+      });
       audioUrl = await uploadToCloudinary(audioFile);
       console.log("Audio uploaded successfully:", audioUrl);
       
       if (imageFile) {
-        console.log("Uploading image file to Cloudinary...");
+        console.log("Uploading image file to Cloudinary...", {
+          name: imageFile.name,
+          size: imageFile.size,
+          mimetype: imageFile.mimetype
+        });
         imageUrl = await uploadToCloudinary(imageFile);
         console.log("Image uploaded successfully:", imageUrl);
       } else {
@@ -99,15 +107,34 @@ export const createSong = async (req, res) => {
         imageUrl = getDefaultMusicLogo();
       }
     } catch (uploadError) {
-      console.error("Cloudinary upload error:", uploadError);
+      console.error("Cloudinary upload error:", {
+        error: uploadError.message,
+        stack: uploadError.stack,
+        audioFile: audioFile ? { name: audioFile.name, size: audioFile.size } : null,
+        imageFile: imageFile ? { name: imageFile.name, size: imageFile.size } : null
+      });
       return res.status(500).json({
         success: false,
         message: "Failed to upload files to cloud storage: " + uploadError.message,
-        code: "UPLOAD_FAILED"
+        code: "UPLOAD_FAILED",
+        details: {
+          audioFileSize: audioFile?.size,
+          imageFileSize: imageFile?.size,
+          error: uploadError.message
+        }
       });
     }
     
     // Create song record
+    console.log("Creating song record with data:", {
+      title: title.trim(),
+      artist: artist.trim(),
+      audioUrl,
+      imageUrl,
+      albumId: albumId || null,
+      duration: parseInt(duration) || 0,
+    });
+    
     const song = new Song({
         title: title.trim(),
         artist: artist.trim(),
@@ -118,6 +145,7 @@ export const createSong = async (req, res) => {
     });
     
     await song.save();
+    console.log("Song saved successfully with ID:", song._id);
 
     // Update album if provided
     if(albumId){

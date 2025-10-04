@@ -34,8 +34,8 @@ const SearchPg = () => {
 				]);
 				
 				setSearchResults({
-					songs: songsRes.data || [],
-					albums: albumsRes.data || []
+					songs: Array.isArray(songsRes.data) ? songsRes.data : [],
+					albums: Array.isArray(albumsRes.data) ? albumsRes.data : []
 				});
 			} catch (error) {
 				console.error("Search error:", error);
