@@ -221,7 +221,8 @@ runTest('integration', 'File Structure Integrity', () => {
         './backend/src/index.js',
         './frontend/src/main.tsx',
         './frontend/src/App.tsx',
-        './package.json',
+        './backend/package.json',
+        './frontend/package.json',
         './vercel.json'
     ];
     return criticalFiles.every(file => fs.existsSync(file));
