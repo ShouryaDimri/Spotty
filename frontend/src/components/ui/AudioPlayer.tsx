@@ -23,7 +23,7 @@ const AudioPlayer = () => {
 			const audio = audioRef.current;
 			audio.src = currentSong.audioUrl;
 			
-			// Reset time when song changes
+			// Reset time only when a new song is loaded
 			audio.currentTime = 0;
 			setCurrentTime(0);
 			
@@ -31,7 +31,7 @@ const AudioPlayer = () => {
 				audio.play().catch(console.error);
 			}
 		}
-	}, [currentSong, isPlaying]);
+	}, [currentSong]);
 
 	// Handle play/pause state changes
 	useEffect(() => {
@@ -42,9 +42,6 @@ const AudioPlayer = () => {
 			audio.play().catch(console.error);
 		} else {
 			audio.pause();
-			// Reset current time to 0 when pausing
-			audio.currentTime = 0;
-			setCurrentTime(0);
 		}
 	}, [isPlaying]);
 
