@@ -108,7 +108,7 @@ const HomePg = () => {
       <Topbar />
       
       <ScrollArea className="h-[calc(100vh-80px)]">
-        <div className="min-h-full pb-8">
+        <div className="min-h-full pb-24">
           {/* Hero Section */}
           <div className="relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 via-purple-600/5 to-emerald-600/10" />

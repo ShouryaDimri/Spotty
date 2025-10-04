@@ -118,6 +118,7 @@ const AdminPg = () => {
 			</div>
 
 			<ScrollArea className="h-[calc(100vh-200px)]">
+				<div className="pb-24">
 				{activeTab === "overview" && (
 					<div className="space-y-6">
 						{/* Stats Cards */}
@@ -263,6 +264,7 @@ const AdminPg = () => {
 						</div>
 					</div>
 				)}
+				</div>
 			</ScrollArea>
 		</div>
 	);
