@@ -20,7 +20,7 @@ const MainLayout = () => {
     }, []);
   return (
     <div className="h-screen bg-black text-white flex flex-col">
-        <ResizablePanelGroup direction="horizontal" className="flex-1 flex height-full overflow-hidden p2">
+        <ResizablePanelGroup direction="horizontal" className="flex-1 flex height-full overflow-hidden">
             <ResizablePanel defaultSize={isMobile ? 0 : 20} minSize={isMobile ? 0 : 10} maxSize={30} collapsible>
                 <LeftSidebar />
             </ResizablePanel>

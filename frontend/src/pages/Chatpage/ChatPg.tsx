@@ -363,7 +363,7 @@ const ChatPg = () => {
   }
 
   return (
-    <div className="h-full flex chat-container relative bg-zinc-900" style={{ height: 'calc(100vh - 80px)' }}>
+    <div className="h-full flex chat-container relative bg-zinc-900" style={{ height: '100vh' }}>
       {/* Users List Sidebar */}
       <div 
         className={`border-r border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-800 transition-all duration-300 ease-in-out overflow-hidden h-full
@@ -471,8 +471,8 @@ const ChatPg = () => {
             </div>
 
             {/* Messages Area */}
-            <ScrollArea className="flex-1 p-4 overflow-y-auto" style={{ height: 'calc(100vh - 280px)' }}>
-              <div className="space-y-4">
+            <ScrollArea className="flex-1 p-4 overflow-y-auto" style={{ height: 'calc(100vh - 200px)' }}>
+              <div className="space-y-4 pb-0">
                 {safeMessages.map((message) => {
                   const isMyMessage = message.senderId === user?.id;
                   const isEditing = editingMessageId === message._id;
