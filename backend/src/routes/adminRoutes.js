@@ -18,7 +18,7 @@ router.delete("/songs/:id", deleteSong); // Public for testing
 router.delete("/albums/:id", protectRoute, requireAdmin, deleteAlbum);
 
 // Public routes (all authenticated users can access)
-router.post("/test-upload", testUpload); // Public for testing
-router.post("/upload-song", createSong); // Public for testing uploads
+router.post("/test-upload", protectRoute, testUpload); // Protected for testing
+router.post("/upload-song", protectRoute, requireAdmin, createSong); // Protected admin uploads
 
 export default router;

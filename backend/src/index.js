@@ -82,7 +82,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   optionsSuccessStatus: 200
 }));
-app.use(express.json()); // to parse JSON bodies
+app.use(express.json({ limit: '50mb' })); // to parse JSON bodies
+app.use(express.urlencoded({ limit: '50mb', extended: true })); // to parse URL-encoded bodies
 
 app.use(clerkMiddleware());
 app.use(fileupload({
@@ -90,7 +91,7 @@ app.use(fileupload({
   tempFileDir: process.env.NOW_REGION ? '/tmp' : path.join(__dirname, 'tmp'),
   createParentPath: true,
   limits: { 
-    fileSize: 1024 * 1024 * 1024, // 600MB limit for larger audio files
+    fileSize: 100 * 1024 * 1024, // 100MB limit for audio files
     files: 2, // Maximum 2 files (audio + image)
     fieldSize: 10 * 1024 * 1024 // 10MB for form fields
   }
