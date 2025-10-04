@@ -26,6 +26,17 @@ const songSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Album',
         required : false
+    },
+    likes: {
+        type: Number,
+        default: 0
+    },
+    likedBy: [{
+        type: String // Clerk user ID
+    }],
+    playCount: {
+        type: Number,
+        default: 0
     }
 }, { timestamps : true }
 );

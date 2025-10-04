@@ -18,6 +18,7 @@ import albumRoutes from './routes/albumRoutes.js';
 import statRoutes from './routes/statRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import healthRoutes from './routes/healthRoutes.js';
+import userStatusRoutes from './routes/userStatusRoutes.js';
 
 dotenv.config();
 
@@ -111,6 +112,7 @@ app.use("/api/songs", songRoutes);
 app.use("/api/albums", albumRoutes);
 app.use("/api/statistics", statRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/user-status", userStatusRoutes);
 app.use("/api", healthRoutes);
 
 // Serve static files from frontend dist folder in production (only for non-serverless)
@@ -143,7 +145,8 @@ if (process.env.NODE_ENV !== 'production') {
         '/api/songs',
         '/api/albums',
         '/api/statistics',
-        '/api/messages'
+        '/api/messages',
+        '/api/user-status'
       ]
     });
   });
@@ -164,7 +167,8 @@ app.use((req, res, next) => {
       '/api/songs',
       '/api/albums',
       '/api/statistics',
-      '/api/messages'
+      '/api/messages',
+      '/api/user-status'
     ]
   });
 });

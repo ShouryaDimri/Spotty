@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { protectRoute, requireAdmin } from "../middleware/authMiddleware.js";
-import { createSong, deleteSong, createAlbum, deleteAlbum, checkAdmin, testUpload, healthCheck } from "../controllers/adminControl.js";
+import { createSong, deleteSong, createAlbum, deleteAlbum, checkAdmin, testUpload, healthCheck, getSongs } from "../controllers/adminControl.js";
 import { getAllSongs } from "../controllers/songControl.js";
 import { getAllAlbums } from "../controllers/albumControl.js";
 import { Song } from "../models/songModel.js";
@@ -10,7 +10,7 @@ const router = Router();
 // Admin routes (require admin access)
 router.get("/health", healthCheck);
 router.get("/check", protectRoute, checkAdmin); // Require auth but allow all users
-router.get("/songs", getAllSongs); // Get all songs for admin - public for testing
+router.get("/songs", getSongs); // Get all songs for admin with liked info - public for testing
 router.get("/albums", getAllAlbums); // Get all albums for admin - public for testing
 router.post("/songs", protectRoute, requireAdmin, createSong);
 router.post("/albums", protectRoute, requireAdmin, createAlbum);

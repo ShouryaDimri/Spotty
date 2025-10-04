@@ -261,6 +261,34 @@ export const deleteAlbum = async (req, res) => {
     }
 };
 
+export const getSongs = async (req, res) => {
+  try {
+    await connectDB();
+    
+    const songs = await Song.find({})
+      .select('_id title artist imageUrl audioUrl duration likes likedBy playCount createdAt')
+      .sort({ createdAt: -1 });
+    
+    // Add default imageUrl for songs that don't have one
+    const songsWithImages = songs.map(song => ({
+      ...song.toObject(),
+      imageUrl: song.imageUrl || getDefaultMusicLogo()
+    }));
+    
+    res.status(200).json({
+      success: true,
+      data: songsWithImages,
+      count: songsWithImages.length
+    });
+  } catch (error) {
+    console.error("Error fetching songs for admin:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+};
+
 export const checkAdmin = async (req, res) => {
     try {
         // Allow all authenticated users to upload songs
