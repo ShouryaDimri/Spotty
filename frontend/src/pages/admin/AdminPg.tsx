@@ -3,7 +3,7 @@ import { axiosInstance } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader, Music, Users, Disc, TrendingUp, Plus, Trash2 } from "lucide-react";
+import { Loader, Music, Users, Disc, TrendingUp, Plus, Trash2, Heart } from "lucide-react";
 import type { Song, Album } from "@/types";
 
 interface Stats {
@@ -115,6 +115,14 @@ const AdminPg = () => {
 				>
 					Albums
 				</Button>
+				<Button
+					variant={activeTab === "liked" ? "default" : "ghost"}
+					onClick={() => setActiveTab("liked")}
+					className="text-white"
+				>
+					<Heart className="h-4 w-4 mr-2" />
+					Liked Songs
+				</Button>
 			</div>
 
 			<ScrollArea className="h-[calc(100vh-200px)]">
@@ -212,6 +220,17 @@ const AdminPg = () => {
 										<div className="flex-1 min-w-0">
 											<h3 className="text-white font-medium truncate">{song.title}</h3>
 											<p className="text-zinc-400 text-sm truncate">{song.artist}</p>
+											<div className="flex items-center gap-4 mt-1">
+												<span className="text-green-400 text-xs">
+													❤️ {song.likes || 0} likes
+												</span>
+												<span className="text-blue-400 text-xs">
+													👥 {song.likedBy?.length || 0} users
+												</span>
+												<span className="text-purple-400 text-xs">
+													▶️ {song.playCount || 0} plays
+												</span>
+											</div>
 										</div>
 										<Button
 											variant="destructive"
@@ -258,6 +277,59 @@ const AdminPg = () => {
 											<Trash2 className="h-4 w-4 mr-2" />
 											Delete Album
 										</Button>
+									</CardContent>
+								</Card>
+							))}
+						</div>
+					</div>
+				)}
+
+				{activeTab === "liked" && (
+					<div className="space-y-4">
+						<div className="flex justify-between items-center">
+							<h2 className="text-xl font-bold text-white">Most Liked Songs</h2>
+							<div className="text-green-400 text-sm">
+								Total Likes: {songs.reduce((sum, song) => sum + (song.likes || 0), 0)}
+							</div>
+						</div>
+
+						<div className="space-y-2">
+							{songs
+								.sort((a, b) => (b.likes || 0) - (a.likes || 0))
+								.map((song, index) => (
+								<Card key={song._id} className="bg-zinc-800 border-zinc-700">
+									<CardContent className="flex items-center gap-4 p-4">
+										<div className="flex items-center gap-3">
+											<span className="text-2xl font-bold text-green-400 w-8">
+												#{index + 1}
+											</span>
+											<img
+												src={song.imageUrl}
+												alt={song.title}
+												className="w-12 h-12 rounded-md object-cover"
+											/>
+										</div>
+										<div className="flex-1 min-w-0">
+											<h3 className="text-white font-medium truncate">{song.title}</h3>
+											<p className="text-zinc-400 text-sm truncate">{song.artist}</p>
+											<div className="flex items-center gap-4 mt-1">
+												<span className="text-green-400 text-sm font-semibold">
+													❤️ {song.likes || 0} likes
+												</span>
+												<span className="text-blue-400 text-sm">
+													👥 {song.likedBy?.length || 0} users
+												</span>
+												<span className="text-purple-400 text-sm">
+													▶️ {song.playCount || 0} plays
+												</span>
+											</div>
+										</div>
+										<div className="text-right">
+											<div className="text-green-400 text-lg font-bold">
+												{song.likes || 0}
+											</div>
+											<div className="text-zinc-500 text-xs">likes</div>
+										</div>
 									</CardContent>
 								</Card>
 							))}

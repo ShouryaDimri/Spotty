@@ -363,7 +363,7 @@ const ChatPg = () => {
   }
 
   return (
-    <div className="h-full flex chat-container relative bg-zinc-900" style={{ height: '100vh' }}>
+    <div className="h-full flex chat-container relative bg-zinc-900" style={{ height: 'calc(100vh - 80px)' }}>
       {/* Users List Sidebar */}
       <div 
         className={`border-r border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-800 transition-all duration-300 ease-in-out overflow-hidden h-full

@@ -211,7 +211,7 @@
 
 /* Remove any gaps between chat and audio player */
 .chat-container {
-  height: 100vh !important;
+  height: calc(100vh - 80px) !important;
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
 }
