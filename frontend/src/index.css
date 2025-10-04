@@ -211,6 +211,7 @@
 
 /* Remove any gaps between chat and audio player */
 .chat-container {
+  height: 100vh !important;
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
 }
@@ -229,4 +230,9 @@
   left: 0 !important;
   right: 0 !important;
   height: 80px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: linear-gradient(90deg, rgb(24 24 27), rgb(39 39 42)) !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5) !important;
 }

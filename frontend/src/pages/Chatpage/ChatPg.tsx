@@ -472,7 +472,7 @@ const ChatPg = () => {
 
             {/* Messages Area */}
             <ScrollArea className="flex-1 p-4 overflow-y-auto" style={{ height: 'calc(100vh - 200px)' }}>
-              <div className="space-y-4 pb-0">
+              <div className="space-y-4 pb-20">
                 {safeMessages.map((message) => {
                   const isMyMessage = message.senderId === user?.id;
                   const isEditing = editingMessageId === message._id;
