@@ -38,68 +38,47 @@ const httpServer = createServer(app);
 
 // Only initialize Socket.io if we're not in a serverless environment
 let io;
-if (process.env.NOW_REGION) {
-  // Running on Vercel - disable Socket.io or use a separate service
+const isServerless = Boolean(process.env.VERCEL || process.env.NOW_REGION || process.env.AWS_LAMBDA_FUNCTION_NAME);
+
+if (isServerless) {
   console.log('Running on Vercel - Socket.io disabled for serverless compatibility');
 } else {
-  // Running locally or on traditional server
   io = new Server(httpServer, {
     cors: {
-      origin: [
-        FRONTEND_URL, 
-        "http://localhost:5173", 
-        "https://spotty-git-master-shouryadimris-projects.vercel.app",
-        "https://spotty-kohl.vercel.app"
-      ],
+      origin: "*",
       credentials: true
     }
   });
 }
 
-// Configure CORS for production - allow all Vercel origins
+// Configure CORS
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
-    
-    // Allow all Vercel domains
-    if (origin.includes('vercel.app') || origin.includes('localhost')) {
+    // Allow all requests in serverless or development
+    if (!origin || isServerless || origin.includes('vercel.app') || origin.includes('localhost')) {
       return callback(null, true);
     }
-    
-    // Allow specific domains
-    const allowedOrigins = [
-      'https://spotty-kohl.vercel.app',
-      'https://spotty-git-master-shouryadimris-projects.vercel.app',
-      'http://localhost:5173',
-      'http://localhost:3000'
-    ];
-    
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    
-    callback(new Error('Not allowed by CORS'));
+    return callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   optionsSuccessStatus: 200
 }));
-app.use(express.json({ limit: '50mb' })); // to parse JSON bodies
-app.use(express.urlencoded({ limit: '50mb', extended: true })); // to parse URL-encoded bodies
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-app.use(clerkMiddleware()); // Clerk middleware for authentication
+app.use(clerkMiddleware());
 
 // File upload middleware configuration
 app.use(fileupload({
   useTempFiles: true,
-  tempFileDir: process.env.NOW_REGION ? '/tmp' : path.join(__dirname, 'tmp'),
+  tempFileDir: isServerless ? '/tmp' : path.join(__dirname, 'tmp'),
   createParentPath: true,
   limits: { 
-    fileSize: 100 * 1024 * 1024, // 100MB limit for audio files
-    files: 2, // Maximum 2 files (audio + image)
-    fieldSize: 10 * 1024 * 1024 // 10MB for form fields
+    fileSize: 100 * 1024 * 1024,
+    files: 2,
+    fieldSize: 10 * 1024 * 1024
   }
 }));
 
@@ -111,13 +90,17 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// API Routes - place these after database connection and auth middleware
+// Database connection middleware - ensure DB connection for every request
 app.use(async (req, res, next) => {
   try {
-    // Ensure database connection for requests in serverless environment
-    if (process.env.NOW_REGION) {
-      await connectDB();
+    if (!process.env.MONGODB_URI) {
+      console.error('❌ MONGODB_URI is not defined in environment variables');
+      return res.status(500).json({
+        success: false,
+        message: 'Database configuration missing. Please set MONGODB_URI in Vercel environment variables.'
+      });
     }
+    await connectDB();
     next();
   } catch (error) {
     console.error('❌ Database connection error:', error);
@@ -185,9 +168,7 @@ app.use((req, res) => {
 });
 
 // Create handler for Vercel serverless functions
-let handler = app;
-
-if (!process.env.NOW_REGION) {
+if (!isServerless) {
   connectDB().then(() => {
     httpServer.listen(PORT, () => {
       console.log('Server is running on port:', PORT);

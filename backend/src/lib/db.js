@@ -1,36 +1,23 @@
 import mongoose from "mongoose";
 
-let cached = global.mongoose;
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
-
 export const connectDB = async () => {
-  if (cached.conn) {
-    return cached.conn;
+  if (mongoose.connection.readyState >= 1) {
+    return mongoose.connection;
   }
 
-  if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,
-    };
-
-    cached.promise = mongoose.connect(process.env.MONGODB_URI, opts).then((mongoose) => {
-      return mongoose;
-    }).catch((error) => {
-      console.error("Failed to connect to MongoDB", error);
-      throw error;
-    });
+  const mongodbUri = process.env.MONGODB_URI;
+  if (!mongodbUri) {
+    throw new Error("MONGODB_URI environment variable is missing.");
   }
 
   try {
-    cached.conn = await cached.promise;
-    console.log(`Connected to MongoDB ${cached.conn.connection.host}`);
-  } catch (e) {
-    cached.promise = null;
-    throw e;
+    const conn = await mongoose.connect(mongodbUri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+    console.log(`Connected to MongoDB: ${conn.connection.host}`);
+    return conn.connection;
+  } catch (error) {
+    console.error("Failed to connect to MongoDB:", error);
+    throw error;
   }
-
-  return cached.conn;
 };
