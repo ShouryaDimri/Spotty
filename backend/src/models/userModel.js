@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 console.log("✅ userModel loaded");
 
-const userSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema( // Define User schema
+	// User's full name, image URL, and Clerk ID
 	{
 		fullName: {
 			type: String,
@@ -20,4 +21,4 @@ const userSchema = new mongoose.Schema(
 	{ timestamps: true } //  createdAt, updatedAt
 );
 
-export const User = mongoose.model("User", userSchema);
+export const User = mongoose.model("User", userSchema); // Export User model

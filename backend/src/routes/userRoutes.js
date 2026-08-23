@@ -1,6 +1,6 @@
-import { Router } from "express";
-import { protectRoute } from "../middleware/authMiddleware.js";
-import { getAllUsers} from "../controllers/userControl.js";
+import { Router } from "express"; // to create modular route handlers
+import { protectRoute } from "../middleware/authMiddleware.js"; // authentication middleware    
+import { getAllUsers} from "../controllers/userControl.js"; // controller function to get all users
 
 const router = Router();
 

@@ -1,1 +1,10 @@
-.vercel
+# Environment variables
+.env
+*.env
+
+# Node Dependencies
+node_modules/
+
+# Vercel & Logs
+.vercel/
+*.log

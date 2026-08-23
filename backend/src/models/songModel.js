@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const songSchema = new mongoose.Schema({
+const songSchema = new mongoose.Schema({ // Define Song schema
     title : {
         type: String,
         required : true
@@ -23,8 +23,8 @@ const songSchema = new mongoose.Schema({
         required : true
     },
     albumId : {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Album',
+        type: mongoose.Schema.Types.ObjectId, //A field that stores the ObjectId of an Album document.
+        ref: 'Album', //Enables linking to Album so data stays connected and normalized. Holds an Album document's ObjectId as a reference field.
         required : false
     },
     likes: {
@@ -40,6 +40,6 @@ const songSchema = new mongoose.Schema({
     }
 }, { timestamps : true }
 );
-
+// createdAt, updatedAt
 
 export const Song = mongoose.model("Song", songSchema);

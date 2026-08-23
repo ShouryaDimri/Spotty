@@ -353,9 +353,9 @@ const ChatPg = () => {
 
   if (isLoading) {
     return (
-      <div className="h-full flex items-center justify-center bg-gradient-to-br from-zinc-900 to-zinc-800">
+      <div className="h-full flex items-center justify-center bg-[#121212]">
         <div className="text-center">
-          <Loader className="w-12 h-12 text-green-500 animate-spin mx-auto mb-4" />
+          <Loader className="w-8 h-8 text-[#1db954] animate-spin mx-auto mb-3" />
           <p className="text-zinc-400 text-sm">Loading conversations...</p>
         </div>
       </div>
@@ -363,34 +363,35 @@ const ChatPg = () => {
   }
 
   return (
-    <div className="h-full flex chat-container relative bg-zinc-900" style={{ height: 'calc(100vh - 80px)' }}>
+    <div className="h-full flex chat-container relative bg-[#121212]" style={{ height: 'calc(100vh - 80px)' }}>
       {/* Users List Sidebar */}
       <div 
-        className={`border-r border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-800 transition-all duration-300 ease-in-out overflow-hidden h-full
+        className={`border-r border-[#282828] bg-[#121212] transition-all duration-300 ease-in-out overflow-hidden h-full
           ${isHovered ? 'w-80' : 'w-20'}
           ${showUsersList ? 'block' : 'hidden md:block'}
-          absolute md:relative z-20 md:z-auto shadow-2xl
+          absolute md:relative z-20 md:z-auto
         `}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="p-4 border-b border-zinc-700/50 flex items-center justify-center flex-shrink-0 bg-zinc-900/50 backdrop-blur">
-          <h2 className={`text-lg font-bold bg-gradient-to-r from-green-400 to-emerald-400 text-transparent bg-clip-text transition-opacity duration-300 ${
+        <div className="p-4 border-b border-[#282828] flex items-center justify-between flex-shrink-0 bg-[#181818]">
+          <h2 className={`text-base font-bold text-white transition-opacity duration-200 ${
             isHovered ? 'opacity-100' : 'opacity-0'
           }`}>
-            {isHovered ? 'Conversations' : ''}
+            Conversations
           </h2>
           {!isHovered && (
-            <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/50">
-              <span className="text-white font-bold text-sm">{safeUsers.length}</span>
+            <div className="w-8 h-8 bg-[#1db954] rounded-full flex items-center justify-center mx-auto">
+              <span className="text-black font-bold text-xs">{safeUsers.length}</span>
             </div>
           )}
         </div>
         
         <ScrollArea className="h-[calc(100vh-160px)]">
-          <div className="flex flex-col gap-2 p-3">
+          <div className="flex flex-col gap-1 p-2">
             {safeUsers.map((chatUser) => {
               const isOnline = onlineUsers.has(chatUser.clerkId);
+              const isSelected = selectedUser?._id === chatUser._id;
               return (
                 <div
                   key={chatUser._id}
@@ -398,34 +399,30 @@ const ChatPg = () => {
                     setSelectedUser(chatUser);
                     setShowUsersList(false);
                   }}
-                  className={`relative group cursor-pointer transition-all duration-300 rounded-xl p-2 ${
-                    selectedUser?._id === chatUser._id 
-                      ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 scale-105 shadow-lg shadow-green-500/20' 
-                      : 'hover:bg-zinc-800/50'
+                  className={`relative group cursor-pointer transition-colors rounded-lg p-2 ${
+                    isSelected 
+                      ? 'bg-[#282828]' 
+                      : 'hover:bg-[#181818]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <div className={`w-12 h-12 rounded-full overflow-hidden border-2 transition-all duration-300 ${
-                        selectedUser?._id === chatUser._id 
-                          ? 'border-green-400 shadow-lg shadow-green-400/50' 
-                          : 'border-zinc-600'
-                      }`}>
+                    <div className="relative flex-shrink-0">
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-800">
                         <img
-                          src={chatUser.imageUrl}
+                          src={chatUser.imageUrl || '/cover-images/1.jpg'}
                           alt={chatUser.fullName}
                           className="w-full h-full object-cover"
                         />
                       </div>
                       {isOnline && (
-                        <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-zinc-900 shadow-lg" />
+                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-[#1db954] rounded-full border-2 border-[#121212]" />
                       )}
                     </div>
                     
-                    <div className={`flex-1 min-w-0 transition-opacity duration-300 ${
+                    <div className={`flex-1 min-w-0 transition-opacity duration-200 ${
                       isHovered ? 'opacity-100' : 'opacity-0 w-0'
                     }`}>
-                      <p className="text-white font-medium text-sm truncate">{chatUser.fullName}</p>
+                      <p className={`font-medium text-sm truncate ${isSelected ? 'text-[#1db954]' : 'text-white'}`}>{chatUser.fullName}</p>
                       <p className="text-zinc-400 text-xs">{isOnline ? 'Online' : 'Offline'}</p>
                     </div>
                   </div>
@@ -437,32 +434,32 @@ const ChatPg = () => {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col h-full bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900">
+      <div className="flex-1 flex flex-col h-full bg-[#121212]">
         {selectedUser ? (
           <>
             {/* Chat Header */}
-            <div className="p-4 border-b border-zinc-700/50 bg-zinc-900/80 backdrop-blur-xl flex-shrink-0 shadow-lg">
+            <div className="p-4 border-b border-[#282828] bg-[#181818] flex-shrink-0">
               <div className="flex items-center gap-3">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setShowUsersList(true)}
-                  className="md:hidden text-zinc-400 hover:text-white hover:bg-zinc-800"
+                  className="md:hidden text-zinc-400 hover:text-white"
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div className="relative">
                   <img
-                    src={selectedUser.imageUrl}
+                    src={selectedUser.imageUrl || '/cover-images/1.jpg'}
                     alt={selectedUser.fullName}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-green-500/50 shadow-lg shadow-green-500/20"
+                    className="w-10 h-10 rounded-full object-cover bg-zinc-800"
                   />
                   {onlineUsers.has(selectedUser.clerkId) && (
-                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-zinc-900" />
+                    <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#1db954] rounded-full border-2 border-[#181818]" />
                   )}
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold text-lg">{selectedUser.fullName}</h3>
+                  <h3 className="text-white font-semibold text-sm">{selectedUser.fullName}</h3>
                   <p className="text-zinc-400 text-xs">
                     {onlineUsers.has(selectedUser.clerkId) ? 'Active now' : 'Offline'}
                   </p>
@@ -472,7 +469,7 @@ const ChatPg = () => {
 
             {/* Messages Area */}
             <ScrollArea className="flex-1 p-4 overflow-y-auto" style={{ height: 'calc(100vh - 200px)' }}>
-              <div className="space-y-4 pb-20">
+              <div className="space-y-3 pb-20">
                 {safeMessages.map((message) => {
                   const isMyMessage = message.senderId === user?.id;
                   const isEditing = editingMessageId === message._id;
@@ -480,33 +477,33 @@ const ChatPg = () => {
                   return (
                     <div
                       key={message._id}
-                      className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} group animate-in fade-in slide-in-from-bottom-4 duration-300`}
+                      className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} group`}
                       onMouseEnter={() => setHoveredMessageId(message._id)}
                       onMouseLeave={() => setHoveredMessageId(null)}
                     >
                       <div className="relative max-w-[75%] sm:max-w-md lg:max-w-lg">
                         <div
-                          className={`relative px-4 py-3 rounded-2xl shadow-lg ${
+                          className={`relative px-4 py-2.5 rounded-xl text-sm ${
                             isMyMessage
-                              ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-black rounded-br-sm'
-                              : 'bg-gradient-to-r from-zinc-700 to-zinc-600 text-white rounded-bl-sm'
+                              ? 'bg-[#1db954] text-black font-medium'
+                              : 'bg-[#282828] text-white'
                           }`}
                         >
-                          {/* 3-Dot Menu */}
-                          <div className="absolute -top-2 -right-2 z-10 message-menu">
+                          {/* Options Menu */}
+                          <div className="absolute -top-2 -right-2 z-10">
                             <Button
                               size="icon"
                               variant="ghost"
                               onClick={() => toggleMenu(message._id)}
-                              className={`h-7 w-7 rounded-full bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-all duration-200 shadow-lg ${
-                                hoveredMessageId === message._id || openMenuId === message._id ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+                              className={`h-6 w-6 rounded-full bg-[#181818] text-zinc-300 hover:text-white transition-opacity ${
+                                hoveredMessageId === message._id || openMenuId === message._id ? 'opacity-100' : 'opacity-0'
                               }`}
                             >
-                              <MoreVertical className="h-4 w-4" />
+                              <MoreVertical className="h-3.5 w-3.5" />
                             </Button>
                             
                             {openMenuId === message._id && (
-                              <div className="absolute right-0 top-10 z-50 bg-zinc-800 border border-zinc-700 rounded-xl shadow-2xl py-2 min-w-[140px] animate-in fade-in slide-in-from-top-2 duration-200">
+                              <div className="absolute right-0 top-8 z-50 bg-[#181818] border border-[#282828] rounded-md py-1 min-w-[120px] shadow-xl">
                                 {isMyMessage && (
                                   <button
                                     onClick={() => {
@@ -514,9 +511,9 @@ const ChatPg = () => {
                                       setEditedMessage(message.message || "");
                                       setOpenMenuId(null);
                                     }}
-                                    className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-zinc-700/50 flex items-center gap-3 transition-colors"
+                                    className="w-full px-3 py-1.5 text-left text-xs text-white hover:bg-[#282828] flex items-center gap-2"
                                   >
-                                    <Edit className="h-4 w-4 text-blue-400" />
+                                    <Edit className="h-3.5 w-3.5 text-blue-400" />
                                     <span>Edit</span>
                                   </button>
                                 )}
@@ -525,9 +522,9 @@ const ChatPg = () => {
                                     handleReplyToMessage(message);
                                     setOpenMenuId(null);
                                   }}
-                                  className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-zinc-700/50 flex items-center gap-3 transition-colors"
+                                  className="w-full px-3 py-1.5 text-left text-xs text-white hover:bg-[#282828] flex items-center gap-2"
                                 >
-                                  <Reply className="h-4 w-4 text-green-400" />
+                                  <Reply className="h-3.5 w-3.5 text-[#1db954]" />
                                   <span>Reply</span>
                                 </button>
                                 {isMyMessage && (
@@ -536,9 +533,9 @@ const ChatPg = () => {
                                       handleDeleteMessage(message._id);
                                       setOpenMenuId(null);
                                     }}
-                                    className="w-full px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-900/20 flex items-center gap-3 transition-colors border-t border-zinc-700/50 mt-1"
+                                    className="w-full px-3 py-1.5 text-left text-xs text-red-400 hover:bg-red-900/30 flex items-center gap-2 border-t border-[#282828] mt-1"
                                   >
-                                    <Trash2 className="h-4 w-4" />
+                                    <Trash2 className="h-3.5 w-3.5" />
                                     <span>Delete</span>
                                   </button>
                                 )}
@@ -548,13 +545,13 @@ const ChatPg = () => {
 
                           {/* Reply Preview */}
                           {message.replyTo && (
-                            <div className={`mb-2 p-2 rounded-lg border-l-4 ${
+                            <div className={`mb-1.5 p-1.5 rounded border-l-2 text-xs ${
                               isMyMessage 
-                                ? 'bg-black/20 border-black/40' 
-                                : 'bg-white/10 border-white/30'
+                                ? 'bg-black/10 border-black/30 text-black/80' 
+                                : 'bg-white/5 border-[#1db954] text-zinc-300'
                             }`}>
-                              <p className="text-xs font-semibold opacity-80 mb-1">{message.replyTo.senderName}</p>
-                              <p className="text-sm truncate opacity-90">{message.replyTo.message}</p>
+                              <p className="font-semibold">{message.replyTo.senderName}</p>
+                              <p className="truncate opacity-90">{message.replyTo.message}</p>
                             </div>
                           )}
                           
@@ -573,13 +570,13 @@ const ChatPg = () => {
                                     setEditedMessage("");
                                   }
                                 }}
-                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-white/30"
+                                className="w-full px-2.5 py-1 bg-black/10 border border-black/20 rounded text-sm focus:outline-none"
                               />
                               <div className="flex gap-2">
                                 <Button
                                   size="sm"
                                   onClick={() => handleEditMessage(message._id)}
-                                  className="bg-white/20 hover:bg-white/30 text-xs h-7 px-3"
+                                  className="bg-black/20 hover:bg-black/30 text-xs h-6 px-2"
                                 >
                                   <Check className="h-3 w-3 mr-1" />
                                   Save
@@ -591,7 +588,7 @@ const ChatPg = () => {
                                     setEditingMessageId(null);
                                     setEditedMessage("");
                                   }}
-                                  className="text-xs h-7 px-3 hover:bg-white/10"
+                                  className="text-xs h-6 px-2"
                                 >
                                   <X className="h-3 w-3 mr-1" />
                                   Cancel
@@ -600,42 +597,34 @@ const ChatPg = () => {
                             </div>
                           ) : (
                             message.message && (
-                              <p className="text-sm leading-relaxed break-words">{message.message}</p>
+                              <p className="leading-relaxed break-words">{message.message}</p>
                             )
                           )}
                           
                           {/* File Attachment */}
                           {message.fileUrl && (
-                            <div className="mt-2 pt-2 border-t border-opacity-20">
+                            <div className="mt-2 pt-2 border-t border-black/10">
                               {message.fileType?.startsWith('image/') ? (
-                                <div className="relative group/image">
+                                <div className="relative">
                                   <img
                                     src={message.fileUrl}
                                     alt={message.fileName}
-                                    className="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                    className="max-w-full h-auto rounded cursor-pointer hover:opacity-95"
                                     onClick={() => window.open(message.fileUrl, '_blank')}
                                   />
-                                  <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 rounded-lg transition-colors flex items-center justify-center">
-                                    <Download className="h-6 w-6 text-white opacity-0 group-hover/image:opacity-100 transition-opacity" />
-                                  </div>
-                                  <p className="text-xs mt-1 opacity-70">{message.fileName}</p>
                                 </div>
                               ) : (
-                                <div className="flex items-center gap-3 p-3 bg-black/20 rounded-lg hover:bg-black/30 transition-colors">
-                                  <div className="p-2 bg-white/10 rounded-lg">
-                                    {getFileIcon(message.fileType || '')}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium truncate">{message.fileName}</p>
-                                    <p className="text-xs opacity-70">{message.fileType}</p>
+                                <div className="flex items-center gap-2 p-2 bg-black/10 rounded">
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-xs font-medium truncate">{message.fileName}</p>
                                   </div>
                                   <Button
                                     size="icon"
                                     variant="ghost"
                                     onClick={() => window.open(message.fileUrl, '_blank')}
-                                    className="h-8 w-8 hover:bg-white/20 rounded-lg"
+                                    className="h-6 w-6"
                                   >
-                                    <Download className="h-4 w-4" />
+                                    <Download className="h-3.5 w-3.5" />
                                   </Button>
                                 </div>
                               )}
@@ -643,9 +632,9 @@ const ChatPg = () => {
                           )}
                           
                           {/* Timestamp */}
-                          <div className="flex items-center gap-1 mt-2">
-                            <p className={`text-xs ${
-                              isMyMessage ? 'text-black/60' : 'text-zinc-300/70'
+                          <div className="flex items-center gap-1 mt-1 justify-end">
+                            <p className={`text-[10px] ${
+                              isMyMessage ? 'text-black/70' : 'text-zinc-400'
                             }`}>
                               {new Date(message.createdAt).toLocaleTimeString([], {
                                 hour: '2-digit',
@@ -653,9 +642,7 @@ const ChatPg = () => {
                               })}
                             </p>
                             {isMyMessage && (
-                              <CheckCheck className={`h-3 w-3 ${
-                                isMyMessage ? 'text-black/60' : 'text-zinc-300/70'
-                              }`} />
+                              <CheckCheck className="h-3 w-3 text-black/70" />
                             )}
                           </div>
                         </div>
@@ -668,55 +655,47 @@ const ChatPg = () => {
             </ScrollArea>
 
             {/* Message Input */}
-            <div className="border-t border-zinc-700/50 bg-zinc-900/80 backdrop-blur-xl chat-input-area shadow-2xl">
-              <form onSubmit={sendMessage} className="p-4">
+            <div className="border-t border-[#282828] bg-[#181818] chat-input-area">
+              <form onSubmit={sendMessage} className="p-3">
                 {/* Reply Preview */}
                 {replyingTo && (
-                  <div className="mb-3 p-3 bg-zinc-800/50 rounded-xl flex items-start gap-3 border border-zinc-700/50">
-                    <div className="p-2 bg-green-500/20 rounded-lg">
-                      <Reply className="h-4 w-4 text-green-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-zinc-400 text-xs font-semibold mb-1">Replying to</p>
-                      <p className="text-white text-sm truncate">{replyingTo.message}</p>
+                  <div className="mb-2 p-2 bg-[#282828] rounded flex items-center justify-between border border-white/5">
+                    <div className="min-w-0">
+                      <p className="text-zinc-400 text-xs">Replying to {replyingTo.senderName}</p>
+                      <p className="text-white text-xs truncate">{replyingTo.message}</p>
                     </div>
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
                       onClick={cancelReply}
-                      className="text-zinc-400 hover:text-white hover:bg-zinc-700 w-8 h-8 rounded-lg"
+                      className="text-zinc-400 hover:text-white h-6 w-6"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 )}
                 
                 {/* File Preview */}
                 {selectedFile && (
-                  <div className="mb-3 p-3 bg-zinc-800/50 rounded-xl flex items-center gap-3 border border-zinc-700/50">
-                    <div className="p-2 bg-blue-500/20 rounded-lg">
-                      {getFileIcon(selectedFile.type)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm font-medium truncate">{selectedFile.name}</p>
-                      <p className="text-zinc-400 text-xs">{formatFileSize(selectedFile.size)}</p>
+                  <div className="mb-2 p-2 bg-[#282828] rounded flex items-center justify-between border border-white/5">
+                    <div className="min-w-0">
+                      <p className="text-white text-xs font-medium truncate">{selectedFile.name}</p>
                     </div>
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
                       onClick={removeSelectedFile}
-                      className="text-zinc-400 hover:text-white hover:bg-zinc-700 w-8 h-8 rounded-lg"
+                      className="text-zinc-400 hover:text-white h-6 w-6"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 )}
                 
                 <div className="flex gap-2">
-                  {/* File Upload Button */}
-                  <label className="relative">
+                  <label className="relative flex items-center">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -728,7 +707,7 @@ const ChatPg = () => {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-xl h-11 w-11 transition-all duration-200"
+                      className="text-zinc-400 hover:text-white hover:bg-[#282828] rounded-full h-10 w-10"
                       asChild
                     >
                       <span>
@@ -737,26 +716,24 @@ const ChatPg = () => {
                     </Button>
                   </label>
                   
-                  {/* Message Input */}
                   <input
                     type="text"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder={selectedFile ? "Add a message (optional)..." : "Type a message..."}
-                    className="flex-1 px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm transition-all duration-200"
+                    placeholder="Type a message..."
+                    className="flex-1 px-4 py-2 bg-[#282828] border border-transparent rounded-full text-white placeholder-zinc-400 focus:outline-none text-sm"
                     disabled={isUploading}
                   />
                   
-                  {/* Send Button */}
                   <Button 
                     type="submit" 
                     disabled={isUploading || (!newMessage.trim() && !selectedFile)}
-                    className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-black disabled:opacity-50 disabled:cursor-not-allowed rounded-xl h-11 w-11 p-0 shadow-lg shadow-green-500/30 transition-all duration-200 hover:scale-105 active:scale-95"
+                    className="bg-[#1db954] hover:bg-[#1ed760] text-black rounded-full h-10 w-10 p-0"
                   >
                     {isUploading ? (
-                      <Loader className="h-5 w-5 animate-spin" />
+                      <Loader className="h-4 w-4 animate-spin" />
                     ) : (
-                      <Send className="h-5 w-5" />
+                      <Send className="h-4 w-4 fill-current ml-0.5" />
                     )}
                   </Button>
                 </div>
@@ -765,17 +742,15 @@ const ChatPg = () => {
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-center max-w-md px-4">
-              <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-green-500/30">
-                <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                </svg>
+            <div className="text-center max-w-sm px-4">
+              <div className="w-16 h-16 bg-[#181818] border border-[#282828] rounded-full flex items-center justify-center mx-auto mb-4">
+                <Send className="w-8 h-8 text-[#1db954]" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-3 bg-gradient-to-r from-green-400 to-emerald-400 text-transparent bg-clip-text">
-                Start a Conversation
+              <h3 className="text-lg font-bold text-white mb-1">
+                Your Messages
               </h3>
-              <p className="text-zinc-400 text-sm leading-relaxed">
-                Select someone from your contacts to begin chatting. Your messages are encrypted and secure.
+              <p className="text-zinc-400 text-sm">
+                Send private messages to friends and listen together.
               </p>
             </div>
           </div>

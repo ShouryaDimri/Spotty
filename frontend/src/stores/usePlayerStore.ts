@@ -27,35 +27,14 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 	initializeQueue: (songs: Song[]) => {
 		set({
 			queue: songs,
-			currentSong: get().currentSong || songs[0],
+			currentSong: get().currentSong || songs[0] || null,
 			currentIndex: get().currentIndex === -1 ? 0 : get().currentIndex,
 		});
 	},
 
-	playAlbum: async (songs: Song[], startIndex = 0) => {
+	playAlbum: (songs: Song[], startIndex = 0) => {
 		if (songs.length === 0) return;
-
-		const song = songs[startIndex];
-
-		// Share current song if user is set
-		const userId = get().currentUserId;
-		if (userId) {
-			try {
-				const { io } = await import("socket.io-client");
-				const socket = io("http://localhost:5137");
-				socket.emit('user_song_update', {
-					userId,
-					song: {
-						title: song.title,
-						artist: song.artist,
-						imageUrl: song.imageUrl
-					}
-				});
-				socket.disconnect();
-			} catch (error) {
-				console.log('Error sharing song status:', error);
-			}
-		}
+		const song = songs[startIndex] || songs[0];
 
 		set({
 			queue: songs,
@@ -65,28 +44,8 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 		});
 	},
 
-	setCurrentSong: async (song: Song | null) => {
+	setCurrentSong: (song: Song | null) => {
 		if (!song) return;
-
-		// Share current song if user is set
-		const userId = get().currentUserId;
-		if (userId) {
-			try {
-				const { io } = await import("socket.io-client");
-				const socket = io("http://localhost:5137");
-				socket.emit('user_song_update', {
-					userId,
-					song: {
-						title: song.title,
-						artist: song.artist,
-						imageUrl: song.imageUrl
-					}
-				});
-				socket.disconnect();
-			} catch (error) {
-				console.log('Error sharing song status:', error);
-			}
-		}
 
 		const songIndex = get().queue.findIndex((s) => s._id === song._id);
 		set({
@@ -97,9 +56,8 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 	},
 
 	togglePlay: () => {
-		const willStartPlaying = !get().isPlaying;
 		set({
-			isPlaying: willStartPlaying,
+			isPlaying: !get().isPlaying,
 		});
 	},
 

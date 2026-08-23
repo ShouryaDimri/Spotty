@@ -9,78 +9,98 @@ import { useEffect } from "react"
 import { Link, useLocation } from "react-router-dom"
 
 export const LeftSidebar = () => {
-    const {albums, fetchAlbums, isLoading} = useMusicStore();
+    const { albums, fetchAlbums, isLoading } = useMusicStore();
     const location = useLocation();
 
     useEffect(() => {
         fetchAlbums();
-    },[fetchAlbums])
+    }, [fetchAlbums]);
 
-    console.log({albums})
-
-//data fetching logic
-    
-
-
-  return (
-    <div className=" h-full flex flex-col gap-2">
-        <div className="rounded-lg bg-zinc-900 p-4">
-            <div className="space-y-2">
-                <Link to = "/" className={cn(buttonVariants({variant: "ghost"}), "w-full justify-start text-white hover:bg-zinc-800", location.pathname === "/" && "bg-zinc-800")}>
-                <HomeIcon className="mr-2 size-5"/> 
-                <span className="hidden md:inline">Home</span>
+    return (
+        <div className="h-full flex flex-col gap-2 p-2 bg-black select-none">
+            {/* Top Navigation Panel */}
+            <div className="rounded-lg bg-[#121212] p-3 space-y-1">
+                <Link
+                    to="/"
+                    className={cn(
+                        buttonVariants({ variant: "ghost" }),
+                        "w-full justify-start text-zinc-300 hover:text-white hover:bg-[#1f1f1f] transition-colors",
+                        location.pathname === "/" && "bg-[#1f1f1f] text-white font-medium"
+                    )}
+                >
+                    <HomeIcon className="mr-3 size-5 text-zinc-400 group-hover:text-white" />
+                    <span className="hidden md:inline text-sm">Home</span>
                 </Link>
-                
-                <Link to = "/search" className={cn(buttonVariants({variant: "ghost"}), "w-full justify-start text-white hover:bg-zinc-800", location.pathname === "/search" && "bg-zinc-800")}>
-                <Search className="mr-2 size-5"/> 
-                <span className="hidden md:inline">Search</span>
+
+                <Link
+                    to="/search"
+                    className={cn(
+                        buttonVariants({ variant: "ghost" }),
+                        "w-full justify-start text-zinc-300 hover:text-white hover:bg-[#1f1f1f] transition-colors",
+                        location.pathname === "/search" && "bg-[#1f1f1f] text-white font-medium"
+                    )}
+                >
+                    <Search className="mr-3 size-5 text-zinc-400 group-hover:text-white" />
+                    <span className="hidden md:inline text-sm">Search</span>
                 </Link>
+
                 <SignedIn>
-                    <Link to = "/chat" className={cn(buttonVariants({variant: "ghost"}), "w-full justify-start text-white hover:bg-zinc-800", location.pathname === "/chat" && "bg-zinc-800")}>
-                    <MessageCircle className="mr-2 size-5"/> 
-                    <span className="hidden md:inline">Messages</span>
-                </Link>
+                    <Link
+                        to="/chat"
+                        className={cn(
+                            buttonVariants({ variant: "ghost" }),
+                            "w-full justify-start text-zinc-300 hover:text-white hover:bg-[#1f1f1f] transition-colors",
+                            (location.pathname === "/chat" || location.pathname === "/messages") && "bg-[#1f1f1f] text-white font-medium"
+                        )}
+                    >
+                        <MessageCircle className="mr-3 size-5 text-zinc-400 group-hover:text-white" />
+                        <span className="hidden md:inline text-sm">Messages</span>
+                    </Link>
                 </SignedIn>
-
             </div>
-        </div>
 
-        {/* Library Section */}
-        <div className="flex-1 rounded-lg bg-zinc-900 p-4">
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center text-white px-2">
-                    <Library className="size-5 mr-2"/>
-                    <span className="hidden md:inline">Playlists</span>
-                </div>
-            </div>
-            <ScrollArea className="h-[calc(100vh-300px)]">
-                <div className="space-y-2">
-                  {isLoading ? (
-                    <PlayListSkeletons />
-                  ) : (
-                    albums.map((album) => (
-                      <Link to={`/albums/${album._id}`}
-                      key={album._id}
-                      className="p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer">
-                        <img src={album.imageUrl} alt="Playlist img"
-                          className="size-12 rounded-md flex-shrink-0 object-cover" />
-
-                          <div className="flex-1 min-w-0 hidden md:block">
-                            <p className="font-medium truncate">
-                              {album.title}
-                            </p>
-                            <p className="text-sm text-zinc-400 truncate">
-                              Album • {album.artist}
-                            </p>
-                          </div>
-
-                      </Link>
-                    ))
-                  )}
+            {/* Library Section */}
+            <div className="flex-1 rounded-lg bg-[#121212] p-3 flex flex-col min-h-0">
+                <div className="flex items-center justify-between px-2 mb-3">
+                    <div className="flex items-center text-zinc-400 hover:text-white transition-colors cursor-pointer">
+                        <Library className="size-5 mr-3" />
+                        <span className="hidden md:inline font-semibold text-sm">Your Library</span>
+                    </div>
                 </div>
 
-            </ScrollArea>
+                <ScrollArea className="flex-1">
+                    <div className="space-y-1 pr-1">
+                        {isLoading ? (
+                            <PlayListSkeletons />
+                        ) : (
+                            albums.map((album) => (
+                                <Link
+                                    to={`/albums/${album._id}`}
+                                    key={album._id}
+                                    className={cn(
+                                        "p-2 hover:bg-[#1a1a1a] rounded-md flex items-center gap-3 group cursor-pointer transition-colors",
+                                        location.pathname === `/albums/${album._id}` && "bg-[#232323]"
+                                    )}
+                                >
+                                    <img
+                                        src={album.imageUrl}
+                                        alt={album.title}
+                                        className="size-11 rounded object-cover flex-shrink-0 bg-zinc-800"
+                                    />
+                                    <div className="flex-1 min-w-0 hidden md:block">
+                                        <p className="font-medium text-sm text-zinc-100 group-hover:text-white truncate">
+                                            {album.title}
+                                        </p>
+                                        <p className="text-xs text-zinc-400 truncate mt-0.5">
+                                            Album • {album.artist}
+                                        </p>
+                                    </div>
+                                </Link>
+                            ))
+                        )}
+                    </div>
+                </ScrollArea>
+            </div>
         </div>
-    </div>
-  )
-}
+    );
+};

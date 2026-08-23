@@ -1,15 +1,17 @@
-import { SignedIn, SignedOut, SignOutButton, useUser } from "@clerk/clerk-react"
-import { LayoutDashboardIcon, Settings, Upload, User, ChevronDown, X } from "lucide-react"
-import { Link } from "react-router-dom"
-import SignInOAuthButton from "./SignInOAuthButton.tsx"
-import { useState, useEffect } from "react"
-import { axiosInstance } from "@/lib/axios"
+import { SignedIn, SignedOut, SignOutButton, useUser } from "@clerk/clerk-react";
+import { LayoutDashboardIcon, Settings, Upload, User, ChevronDown, X, Music2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import SignInOAuthButton from "./SignInOAuthButton.tsx";
+import { useState, useEffect } from "react";
+import { axiosInstance } from "@/lib/axios";
 
 const Topbar = () => {
     const [showDropdown, setShowDropdown] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
     const [showUpload, setShowUpload] = useState(false);
+    const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
     const [profileForm, setProfileForm] = useState({ firstName: '', lastName: '' });
     const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
     const [uploadForm, setUploadForm] = useState({
@@ -22,15 +24,6 @@ const Topbar = () => {
     const { user } = useUser();
 
     useEffect(() => {
-        const checkAdminStatus = async () => {
-            // Admin status check removed - upload available for all users
-            return;
-        };
-
-        checkAdminStatus();
-    }, [user]);
-
-    useEffect(() => {
         if (user) {
             setProfileForm({
                 firstName: user.firstName || '',
@@ -39,78 +32,41 @@ const Topbar = () => {
         }
     }, [user]);
 
+    const showBanner = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setNotification({ message, type });
+        setTimeout(() => {
+            setNotification(null);
+        }, 4000);
+    };
+
     const handleProfileSave = async () => {
         try {
             setIsUpdatingProfile(true);
-            
             if (user) {
-                console.log('Saving profile changes:', profileForm);
-                
-                // Update user profile using Clerk's API (username is not supported)
                 await user.update({
                     firstName: profileForm.firstName,
                     lastName: profileForm.lastName
                 });
-                
-                // Reload the user to get updated data
                 await user.reload();
-                
-                console.log('Profile updated successfully');
+                showBanner('Profile updated successfully', 'success');
                 setShowProfile(false);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error updating profile:', error);
-            alert('Error updating profile. Please try again.');
+            showBanner(error.message || 'Error updating profile. Please try again.', 'error');
         } finally {
             setIsUpdatingProfile(false);
         }
     };
 
-    const testUpload = async () => {
-        try {
-            console.log('🧪 Testing upload endpoint...');
-            
-            const formData = new FormData();
-            formData.append('title', 'Test Song');
-            formData.append('artist', 'Test Artist');
-            formData.append('test', 'true');
-
-            const response = await axiosInstance.post('/admin/test-upload', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-                timeout: 10000,
-            });
-
-            console.log('✅ Test upload successful:', response.data);
-            alert('Test upload successful! Check console for details.');
-        } catch (error: any) {
-            console.error('❌ Test upload failed:', error);
-            alert(`Test upload failed: ${error.message}`);
-        }
-    };
-
     const handleUploadSubmit = async () => {
         if (!uploadForm.title || !uploadForm.artist || !uploadForm.audioFile) {
-            // Show validation error message
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'fixed top-4 right-4 bg-yellow-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-            errorDiv.textContent = 'Please fill in all required fields';
-            document.body.appendChild(errorDiv);
-            
-            // Remove message after 3 seconds
-            setTimeout(() => {
-                if (document.body.contains(errorDiv)) {
-                    document.body.removeChild(errorDiv);
-                }
-            }, 3000);
+            showBanner('Please fill in all required fields', 'error');
             return;
         }
 
         try {
             setIsUploading(true);
-            console.log("Starting upload process...");
-            
             const formData = new FormData();
             formData.append('title', uploadForm.title);
             formData.append('artist', uploadForm.artist);
@@ -118,121 +74,84 @@ const Topbar = () => {
             if (uploadForm.imageFile) {
                 formData.append('imageFile', uploadForm.imageFile);
             }
-            formData.append('duration', '0'); // Will be calculated on server
-
-            console.log("Form data prepared:", {
-                title: uploadForm.title,
-                artist: uploadForm.artist,
-                audioFile: uploadForm.audioFile?.name,
-                imageFile: uploadForm.imageFile?.name
-            });
+            formData.append('duration', '0');
 
             const response = await axiosInstance.post('/admin/upload-song', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
-                timeout: 60000, // 60 seconds timeout for file uploads
+                timeout: 60000,
             });
-            
-            console.log("Upload response:", response);
 
-            // Check if response indicates success
             const responseData = response.data as any;
-            if (responseData?.success) {
-                // Show success message
-                const successMessage = document.createElement('div');
-                successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-                successMessage.textContent = responseData.message || 'Song uploaded successfully!';
-                document.body.appendChild(successMessage);
-                
-                // Remove message after 3 seconds
-                setTimeout(() => {
-                    if (document.body.contains(successMessage)) {
-                        document.body.removeChild(successMessage);
-                    }
-                }, 3000);
+            if (responseData?.success || response.status === 200) {
+                showBanner(responseData.message || 'Song uploaded successfully!', 'success');
+                setUploadForm({
+                    title: '',
+                    artist: '',
+                    audioFile: null,
+                    imageFile: null
+                });
+                setShowUpload(false);
             } else {
                 throw new Error(responseData?.message || 'Upload failed');
             }
-            
-            // Reset form
-            setUploadForm({
-                title: '',
-                artist: '',
-                audioFile: null,
-                imageFile: null
-            });
-            setShowUpload(false);
         } catch (error: any) {
             console.error('Error uploading song:', error);
-            
-            let errorMessage = 'Unknown error occurred';
-            
-            if (error.code === 'ERR_NETWORK') {
-                errorMessage = 'Network Error - Please check your connection and try again';
-            } else if (error.response?.status === 401) {
-                errorMessage = 'Unauthorized - Please sign in again';
-            } else if (error.response?.status === 403) {
-                errorMessage = 'Forbidden - Admin access required';
-            } else if (error.response?.status === 413) {
-                errorMessage = 'File too large - Please choose a smaller file';
-            } else if (error.response?.data?.message) {
+            let errorMessage = 'Upload failed. Please try again.';
+            if (error.response?.data?.message) {
                 errorMessage = error.response.data.message;
             } else if (error.message) {
                 errorMessage = error.message;
             }
-            
-            // Show error message
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-            errorDiv.textContent = `Error uploading song: ${errorMessage}`;
-            document.body.appendChild(errorDiv);
-            
-            // Remove message after 5 seconds
-            setTimeout(() => {
-                if (document.body.contains(errorDiv)) {
-                    document.body.removeChild(errorDiv);
-                }
-            }, 5000);
+            showBanner(errorMessage, 'error');
         } finally {
             setIsUploading(false);
         }
     };
 
-  return (
-    <div className="flex items-center justify-between p-6 sticky top-0 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 backdrop-blur-md z-[1000] border-b border-zinc-700/50">
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 via-transparent to-purple-500/5 pointer-events-none" />
-        
-        <div className="relative flex gap-3 items-center">
-            <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-400 rounded-lg flex items-center justify-center shadow-lg">
-                    <span className="text-black font-bold text-lg">S</span>
+    return (
+        <div className="sticky top-0 z-40 bg-[#121212] border-b border-[#282828] px-6 py-4 flex items-center justify-between">
+            {/* Notification Banner */}
+            {notification && (
+                <div
+                    className={`fixed top-4 right-4 z-50 px-4 py-2.5 rounded-lg shadow-xl text-sm font-medium transition-all ${
+                        notification.type === 'success' ? 'bg-[#1db954] text-black' :
+                        notification.type === 'error' ? 'bg-[#e91429] text-white' :
+                        'bg-[#282828] text-white'
+                    }`}
+                >
+                    {notification.message}
                 </div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-white to-zinc-300 bg-clip-text text-transparent">
+            )}
+
+            {/* App Brand Logo */}
+            <Link to="/" className="flex items-center gap-3 group">
+                <div className="w-8 h-8 bg-[#1db954] rounded-full flex items-center justify-center transition-transform group-hover:scale-105">
+                    <Music2 className="w-5 h-5 text-black" />
+                </div>
+                <span className="text-xl font-bold text-white tracking-tight">
                     Spotty
                 </span>
-            </div>
-        </div>
-        
-        <div className="relative flex items-center gap-4">
+            </Link>
 
+            {/* Actions & Account */}
+            <div className="flex items-center gap-4">
                 <SignedIn>
-                    {/* Account Dropdown */}
                     <div className="relative">
                         <button
                             onClick={() => setShowDropdown(!showDropdown)}
-                            className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-zinc-800 to-zinc-700 hover:from-zinc-700 hover:to-zinc-600 text-white rounded-lg shadow-lg transition-all duration-200 hover:scale-105 border border-zinc-600"
+                            className="flex items-center gap-2 px-3 py-1.5 bg-[#181818] hover:bg-[#282828] text-white rounded-full border border-white/10 transition-colors"
                         >
                             <img
                                 src={user?.imageUrl || '/cover-images/1.jpg'}
                                 alt="Profile"
-                                className="w-8 h-8 rounded-full object-cover"
+                                className="w-7 h-7 rounded-full object-cover"
                                 onError={(e) => {
                                     e.currentTarget.src = '/cover-images/1.jpg';
                                 }}
                             />
-                            <span className="hidden md:inline font-medium">
+                            <span className="hidden md:inline text-sm font-medium">
                                 {user?.firstName || 'User'}
                             </span>
                             <ChevronDown className="w-4 h-4 text-zinc-400" />
@@ -240,55 +159,53 @@ const Topbar = () => {
 
                         {/* Dropdown Menu */}
                         {showDropdown && (
-                            <div className="absolute right-0 mt-2 w-56 bg-zinc-800 border border-zinc-700 rounded-lg shadow-2xl z-[50000]">
-                                <div className="py-2">
-                                    <Link
-                                        to="/admin"
-                                        onClick={() => setShowDropdown(false)}
-                                        className="w-full flex items-center gap-3 px-4 py-3 text-left text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors"
-                                    >
-                                        <LayoutDashboardIcon className="h-4 w-4" />
-                                        Admin Dashboard
-                                    </Link>
-                                    
-                                    <button
-                                        onClick={() => {
-                                            setShowSettings(true);
-                                            setShowDropdown(false);
-                                        }}
-                                        className="w-full flex items-center gap-3 px-4 py-3 text-left text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors"
-                                    >
-                                        <Settings className="h-4 w-4" />
-                                        Settings
-                                    </button>
-                                    
-                                    <button
-                                        onClick={() => {
-                                            setShowUpload(true);
-                                            setShowDropdown(false);
-                                        }}
-                                        className="w-full flex items-center gap-3 px-4 py-3 text-left text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors"
-                                    >
-                                        <Upload className="h-4 w-4" />
-                                        Upload a Song
-                                    </button>
-                                    
-                                    <button
-                                        onClick={() => {
-                                            setShowProfile(true);
-                                            setShowDropdown(false);
-                                        }}
-                                        className="w-full flex items-center gap-3 px-4 py-3 text-left text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors"
-                                    >
-                                        <User className="h-4 w-4" />
-                                        Change Profile
-                                    </button>
-                                    
-                                    <div className="border-t border-zinc-700 my-2"></div>
-                                    
-                                    <div className="px-4 py-3">
-                                        <SignOutButton />
-                                    </div>
+                            <div className="absolute right-0 mt-2 w-52 bg-[#181818] border border-[#282828] rounded-lg shadow-2xl z-50 py-1 select-none">
+                                <Link
+                                    to="/admin"
+                                    onClick={() => setShowDropdown(false)}
+                                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-300 hover:bg-[#282828] hover:text-white transition-colors"
+                                >
+                                    <LayoutDashboardIcon className="h-4 w-4 text-zinc-400" />
+                                    Admin Dashboard
+                                </Link>
+
+                                <button
+                                    onClick={() => {
+                                        setShowUpload(true);
+                                        setShowDropdown(false);
+                                    }}
+                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-300 hover:bg-[#282828] hover:text-white transition-colors"
+                                >
+                                    <Upload className="h-4 w-4 text-zinc-400" />
+                                    Upload Song
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        setShowProfile(true);
+                                        setShowDropdown(false);
+                                    }}
+                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-300 hover:bg-[#282828] hover:text-white transition-colors"
+                                >
+                                    <User className="h-4 w-4 text-zinc-400" />
+                                    Edit Profile
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        setShowSettings(true);
+                                        setShowDropdown(false);
+                                    }}
+                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-300 hover:bg-[#282828] hover:text-white transition-colors"
+                                >
+                                    <Settings className="h-4 w-4 text-zinc-400" />
+                                    Settings
+                                </button>
+
+                                <div className="border-t border-[#282828] my-1" />
+
+                                <div className="px-4 py-2 text-sm text-zinc-300 hover:text-white">
+                                    <SignOutButton />
                                 </div>
                             </div>
                         )}
@@ -298,189 +215,173 @@ const Topbar = () => {
                 <SignedOut>
                     <SignInOAuthButton />
                 </SignedOut>
+            </div>
 
+            {/* Settings Modal */}
+            {showSettings && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+                    <div className="relative bg-[#181818] border border-[#282828] rounded-xl p-6 w-full max-w-md">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-white">Settings</h3>
+                            <button onClick={() => setShowSettings(false)} className="text-zinc-400 hover:text-white">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-zinc-300 mb-2">Streaming Audio Quality</label>
+                                <select className="w-full px-3 py-2 bg-[#282828] border border-white/10 rounded-lg text-white text-sm focus:outline-none">
+                                    <option>High (320 kbps)</option>
+                                    <option>Normal (160 kbps)</option>
+                                    <option>Low (96 kbps)</option>
+                                </select>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    showBanner('Settings saved', 'success');
+                                    setShowSettings(false);
+                                }}
+                                className="w-full py-2.5 bg-[#1db954] hover:bg-[#1ed760] text-black font-semibold rounded-full transition-colors text-sm"
+                            >
+                                Save Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Profile Edit Modal */}
+            {showProfile && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+                    <div className="relative bg-[#181818] border border-[#282828] rounded-xl p-6 w-full max-w-md">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-white">Edit Profile</h3>
+                            <button onClick={() => setShowProfile(false)} className="text-zinc-400 hover:text-white">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="flex justify-center mb-2">
+                                <img
+                                    src={user?.imageUrl || '/cover-images/1.jpg'}
+                                    alt="Profile"
+                                    className="w-20 h-20 rounded-full object-cover border-2 border-[#1db954]"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-400 mb-1">First Name</label>
+                                <input
+                                    type="text"
+                                    value={profileForm.firstName}
+                                    onChange={(e) => setProfileForm(prev => ({ ...prev, firstName: e.target.value }))}
+                                    className="w-full px-3 py-2 bg-[#282828] border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[#1db954]"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-400 mb-1">Last Name</label>
+                                <input
+                                    type="text"
+                                    value={profileForm.lastName}
+                                    onChange={(e) => setProfileForm(prev => ({ ...prev, lastName: e.target.value }))}
+                                    className="w-full px-3 py-2 bg-[#282828] border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[#1db954]"
+                                />
+                            </div>
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowProfile(false)}
+                                    className="flex-1 py-2 bg-[#282828] hover:bg-[#333333] text-white rounded-full text-sm font-medium transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleProfileSave}
+                                    disabled={!profileForm.firstName || isUpdatingProfile}
+                                    className="flex-1 py-2 bg-[#1db954] hover:bg-[#1ed760] text-black rounded-full text-sm font-semibold transition-colors disabled:opacity-50"
+                                >
+                                    {isUpdatingProfile ? 'Saving...' : 'Save Changes'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Upload Song Modal */}
+            {showUpload && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+                    <div className="relative bg-[#181818] border border-[#282828] rounded-xl p-6 w-full max-w-md">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-white">Upload a Song</h3>
+                            <button onClick={() => setShowUpload(false)} className="text-zinc-400 hover:text-white">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <form onSubmit={(e) => { e.preventDefault(); handleUploadSubmit(); }} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-400 mb-1">Song Title *</label>
+                                <input
+                                    type="text"
+                                    value={uploadForm.title}
+                                    onChange={(e) => setUploadForm(prev => ({ ...prev, title: e.target.value }))}
+                                    className="w-full px-3 py-2 bg-[#282828] border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[#1db954]"
+                                    placeholder="e.g. Midnight City"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-400 mb-1">Artist Name *</label>
+                                <input
+                                    type="text"
+                                    value={uploadForm.artist}
+                                    onChange={(e) => setUploadForm(prev => ({ ...prev, artist: e.target.value }))}
+                                    className="w-full px-3 py-2 bg-[#282828] border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[#1db954]"
+                                    placeholder="e.g. M83"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-400 mb-1">Audio File *</label>
+                                <input
+                                    type="file"
+                                    accept="audio/*"
+                                    onChange={(e) => setUploadForm(prev => ({ ...prev, audioFile: e.target.files?.[0] || null }))}
+                                    className="w-full px-3 py-2 bg-[#282828] border border-white/10 rounded-lg text-white text-sm file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-[#1db954] file:text-black file:font-medium text-zinc-400 cursor-pointer"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-400 mb-1">Cover Artwork (Optional)</label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => setUploadForm(prev => ({ ...prev, imageFile: e.target.files?.[0] || null }))}
+                                    className="w-full px-3 py-2 bg-[#282828] border border-white/10 rounded-lg text-white text-sm file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-[#1db954] file:text-black file:font-medium text-zinc-400 cursor-pointer"
+                                />
+                            </div>
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowUpload(false)}
+                                    className="flex-1 py-2 bg-[#282828] hover:bg-[#333333] text-white rounded-full text-sm font-medium transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isUploading}
+                                    className="flex-1 py-2 bg-[#1db954] hover:bg-[#1ed760] text-black rounded-full text-sm font-semibold transition-colors disabled:opacity-50"
+                                >
+                                    {isUploading ? 'Uploading...' : 'Upload Song'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
-        
-        {/* Settings Modal */}
-        {showSettings && (
-            <div className="fixed inset-0 z-[99999] flex items-start justify-center p-4 pt-24">
-                <div className="absolute inset-0 bg-black/50" onClick={() => setShowSettings(false)} />
-                <div className="relative bg-zinc-900 border border-zinc-700 rounded-xl p-6 w-full max-w-md mt-16">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-white">Settings</h3>
-                        <button onClick={() => setShowSettings(false)} className="text-zinc-400 hover:text-white">
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-300 mb-2">Audio Quality</label>
-                            <select className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded text-white">
-                                <option>High (320kbps)</option>
-                                <option>Medium (160kbps)</option>
-                                <option>Low (96kbps)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="flex items-center gap-2 text-zinc-300">
-                                <input type="checkbox" defaultChecked />
-                                Enable notifications
-                            </label>
-                        </div>
-                        <button
-                            onClick={() => setShowSettings(false)}
-                            className="w-full px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors"
-                        >
-                            Save Settings
-                        </button>
-                    </div>
-                </div>
-            </div>
-        )}
-        
-        {/* Profile Edit Modal */}
-        {showProfile && (
-            <div className="fixed inset-0 z-[99999] flex items-start justify-center p-4 pt-24">
-                <div className="absolute inset-0 bg-black/50" onClick={() => setShowProfile(false)} />
-                <div className="relative bg-zinc-900 border border-zinc-700 rounded-xl p-6 w-full max-w-md mt-16">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-white">Edit Profile</h3>
-                        <button onClick={() => setShowProfile(false)} className="text-zinc-400 hover:text-white">
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
-                    <div className="space-y-4">
-                        <div className="flex justify-center mb-4">
-                            <img
-                                src={user?.imageUrl || '/cover-images/1.jpg'}
-                                alt="Profile"
-                                className="w-20 h-20 rounded-full object-cover border-2 border-green-500"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-300 mb-2">First Name</label>
-                            <input
-                                type="text"
-                                value={profileForm.firstName}
-                                onChange={(e) => setProfileForm(prev => ({ ...prev, firstName: e.target.value }))}
-                                className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded text-white"
-                                placeholder="Enter first name"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-300 mb-2">Last Name</label>
-                            <input
-                                type="text"
-                                value={profileForm.lastName}
-                                onChange={(e) => setProfileForm(prev => ({ ...prev, lastName: e.target.value }))}
-                                className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded text-white"
-                                placeholder="Enter last name"
-                            />
-                        </div>
-                        <div className="flex gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setShowProfile(false)}
-                                className="flex-1 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleProfileSave}
-                                className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled={!profileForm.firstName || !profileForm.lastName || isUpdatingProfile}
-                            >
-                                {isUpdatingProfile ? 'Saving...' : 'Save Changes'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )}
-        
-        {/* Upload Song Modal */}
-        {showUpload && (
-            <div className="fixed inset-0 z-[99999] flex items-start justify-center p-4 pt-24">
-                <div className="absolute inset-0 bg-black/50" onClick={() => setShowUpload(false)} />
-                <div className="relative bg-zinc-900 border border-zinc-700 rounded-xl p-6 w-full max-w-md mt-16">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-white">Upload a Song</h3>
-                        <button onClick={() => setShowUpload(false)} className="text-zinc-400 hover:text-white">
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
-                    <form onSubmit={(e) => { e.preventDefault(); handleUploadSubmit(); }} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-300 mb-2">Song Title *</label>
-                            <input
-                                type="text"
-                                value={uploadForm.title}
-                                onChange={(e) => setUploadForm(prev => ({ ...prev, title: e.target.value }))}
-                                className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded text-white"
-                                placeholder="Enter song title"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-300 mb-2">Artist Name *</label>
-                            <input
-                                type="text"
-                                value={uploadForm.artist}
-                                onChange={(e) => setUploadForm(prev => ({ ...prev, artist: e.target.value }))}
-                                className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded text-white"
-                                placeholder="Enter artist name"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-300 mb-2">Audio File *</label>
-                            <input
-                                type="file"
-                                accept="audio/*"
-                                onChange={(e) => setUploadForm(prev => ({ ...prev, audioFile: e.target.files?.[0] || null }))}
-                                className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded text-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-green-600 file:text-white"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-300 mb-2">Cover Image (Optional)</label>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => setUploadForm(prev => ({ ...prev, imageFile: e.target.files?.[0] || null }))}
-                                className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded text-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-green-600 file:text-white"
-                            />
-                        </div>
-                        <div className="flex gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setShowUpload(false)}
-                                className="flex-1 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                onClick={testUpload}
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
-                            >
-                                Test Upload
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={isUploading}
-                                className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {isUploading ? 'Uploading...' : 'Upload Song'}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        )}
-    </div>
-  )
-}
+    );
+};
 
 export default Topbar;

@@ -1,0 +1,11 @@
+{
+  "name": "spotty-master",
+  "version": "1.0.0",
+  "description": "A full-stack music streaming application built with modern web technologies, featuring real-time chat, admin dashboard, and comprehensive music management.",
+  "main": "comprehensive-360-check.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "type": "module"
+}

@@ -86,85 +86,85 @@ const AdminPg = () => {
 	}
 
 	return (
-		<div className="h-full p-6">
+		<div className="h-full bg-[#121212] p-6">
 			<div className="mb-6">
-				<h1 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
-				<p className="text-zinc-400">Manage your music platform</p>
+				<h1 className="text-2xl font-bold text-white mb-1">Admin Dashboard</h1>
+				<p className="text-sm text-zinc-400">Overview & management of your music catalog</p>
 			</div>
 
 			{/* Tab Navigation */}
-			<div className="flex gap-4 mb-6">
+			<div className="flex gap-2 mb-6">
 				<Button
-					variant={activeTab === "overview" ? "default" : "ghost"}
+					variant="ghost"
 					onClick={() => setActiveTab("overview")}
-					className="text-white"
+					className={`rounded-full text-sm ${activeTab === "overview" ? "bg-[#282828] text-white" : "text-zinc-400 hover:text-white hover:bg-[#181818]"}`}
 				>
 					Overview
 				</Button>
 				<Button
-					variant={activeTab === "songs" ? "default" : "ghost"}
+					variant="ghost"
 					onClick={() => setActiveTab("songs")}
-					className="text-white"
+					className={`rounded-full text-sm ${activeTab === "songs" ? "bg-[#282828] text-white" : "text-zinc-400 hover:text-white hover:bg-[#181818]"}`}
 				>
 					Songs
 				</Button>
 				<Button
-					variant={activeTab === "albums" ? "default" : "ghost"}
+					variant="ghost"
 					onClick={() => setActiveTab("albums")}
-					className="text-white"
+					className={`rounded-full text-sm ${activeTab === "albums" ? "bg-[#282828] text-white" : "text-zinc-400 hover:text-white hover:bg-[#181818]"}`}
 				>
 					Albums
 				</Button>
 				<Button
-					variant={activeTab === "liked" ? "default" : "ghost"}
+					variant="ghost"
 					onClick={() => setActiveTab("liked")}
-					className="text-white"
+					className={`rounded-full text-sm ${activeTab === "liked" ? "bg-[#282828] text-white" : "text-zinc-400 hover:text-white hover:bg-[#181818]"}`}
 				>
-					<Heart className="h-4 w-4 mr-2" />
-					Liked Songs
+					<Heart className="h-4 w-4 mr-1.5 text-red-500" />
+					Top Liked
 				</Button>
 			</div>
 
-			<ScrollArea className="h-[calc(100vh-200px)]">
+			<ScrollArea className="h-[calc(100vh-220px)]">
 				<div className="pb-24">
 				{activeTab === "overview" && (
 					<div className="space-y-6">
 						{/* Stats Cards */}
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-							<Card className="bg-zinc-800 border-zinc-700">
-								<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-									<CardTitle className="text-sm font-medium text-zinc-200">Total Songs</CardTitle>
-									<Music className="h-4 w-4 text-green-500" />
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+							<Card className="bg-[#181818] border-[#282828]">
+								<CardHeader className="flex flex-row items-center justify-between pb-2">
+									<CardTitle className="text-xs font-medium text-zinc-400">Total Songs</CardTitle>
+									<Music className="h-4 w-4 text-[#1db954]" />
 								</CardHeader>
 								<CardContent>
-									<div className="text-2xl font-bold text-white">{stats?.totalSongs || 0}</div>
+									<div className="text-2xl font-bold text-white">{stats?.totalSongs || songs.length || 0}</div>
 								</CardContent>
 							</Card>
 
-							<Card className="bg-zinc-800 border-zinc-700">
-								<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-									<CardTitle className="text-sm font-medium text-zinc-200">Total Albums</CardTitle>
-									<Disc className="h-4 w-4 text-blue-500" />
+							<Card className="bg-[#181818] border-[#282828]">
+								<CardHeader className="flex flex-row items-center justify-between pb-2">
+									<CardTitle className="text-xs font-medium text-zinc-400">Total Albums</CardTitle>
+									<Disc className="h-4 w-4 text-blue-400" />
 								</CardHeader>
 								<CardContent>
-									<div className="text-2xl font-bold text-white">{stats?.totalAlbums || 0}</div>
+									<div className="text-2xl font-bold text-white">{stats?.totalAlbums || albums.length || 0}</div>
 								</CardContent>
 							</Card>
 
-							<Card className="bg-zinc-800 border-zinc-700">
-								<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-									<CardTitle className="text-sm font-medium text-zinc-200">Total Users</CardTitle>
-									<Users className="h-4 w-4 text-purple-500" />
+							<Card className="bg-[#181818] border-[#282828]">
+								<CardHeader className="flex flex-row items-center justify-between pb-2">
+									<CardTitle className="text-xs font-medium text-zinc-400">Total Users</CardTitle>
+									<Users className="h-4 w-4 text-purple-400" />
 								</CardHeader>
 								<CardContent>
 									<div className="text-2xl font-bold text-white">{stats?.totalUsers || 0}</div>
 								</CardContent>
 							</Card>
 
-							<Card className="bg-zinc-800 border-zinc-700">
-								<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-									<CardTitle className="text-sm font-medium text-zinc-200">Total Artists</CardTitle>
-									<TrendingUp className="h-4 w-4 text-orange-500" />
+							<Card className="bg-[#181818] border-[#282828]">
+								<CardHeader className="flex flex-row items-center justify-between pb-2">
+									<CardTitle className="text-xs font-medium text-zinc-400">Total Artists</CardTitle>
+									<TrendingUp className="h-4 w-4 text-amber-400" />
 								</CardHeader>
 								<CardContent>
 									<div className="text-2xl font-bold text-white">{stats?.totalArtists || 0}</div>
@@ -172,23 +172,23 @@ const AdminPg = () => {
 							</Card>
 						</div>
 
-						{/* Recent Activity */}
-						<Card className="bg-zinc-800 border-zinc-700">
+						{/* Recent Songs */}
+						<Card className="bg-[#181818] border-[#282828]">
 							<CardHeader>
-								<CardTitle className="text-white">Recent Songs</CardTitle>
+								<CardTitle className="text-white text-base">Recent Catalog Songs</CardTitle>
 							</CardHeader>
 							<CardContent>
-								<div className="space-y-3">
+								<div className="space-y-2">
 									{songs.slice(0, 5).map((song) => (
-										<div key={song._id} className="flex items-center gap-3">
+										<div key={song._id} className="flex items-center gap-3 p-2 rounded hover:bg-[#282828] transition-colors">
 											<img
-												src={song.imageUrl}
+												src={song.imageUrl || '/cover-images/1.jpg'}
 												alt={song.title}
-												className="w-10 h-10 rounded-md object-cover"
+												className="w-10 h-10 rounded object-cover flex-shrink-0 bg-zinc-800"
 											/>
 											<div className="flex-1 min-w-0">
-												<p className="text-white font-medium truncate">{song.title}</p>
-												<p className="text-zinc-400 text-sm truncate">{song.artist}</p>
+												<p className="text-white font-medium text-sm truncate">{song.title}</p>
+												<p className="text-zinc-400 text-xs truncate">{song.artist}</p>
 											</div>
 										</div>
 									))}
@@ -201,41 +201,27 @@ const AdminPg = () => {
 				{activeTab === "songs" && (
 					<div className="space-y-4">
 						<div className="flex justify-between items-center">
-							<h2 className="text-xl font-bold text-white">Songs Management</h2>
-							<Button className="bg-green-500 hover:bg-green-600 text-black">
-								<Plus className="h-4 w-4 mr-2" />
-								Add Song
-							</Button>
+							<h2 className="text-lg font-bold text-white">Songs Management</h2>
 						</div>
 
 						<div className="space-y-2">
 							{songs.map((song) => (
-								<Card key={song._id} className="bg-zinc-800 border-zinc-700">
-									<CardContent className="flex items-center gap-4 p-4">
+								<Card key={song._id} className="bg-[#181818] border-[#282828]">
+									<CardContent className="flex items-center gap-4 p-3">
 										<img
-											src={song.imageUrl}
+											src={song.imageUrl || '/cover-images/1.jpg'}
 											alt={song.title}
-											className="w-12 h-12 rounded-md object-cover"
+											className="w-12 h-12 rounded object-cover flex-shrink-0 bg-zinc-800"
 										/>
 										<div className="flex-1 min-w-0">
-											<h3 className="text-white font-medium truncate">{song.title}</h3>
-											<p className="text-zinc-400 text-sm truncate">{song.artist}</p>
-											<div className="flex items-center gap-4 mt-1">
-												<span className="text-green-400 text-xs">
-													❤️ {song.likes || 0} likes
-												</span>
-												<span className="text-blue-400 text-xs">
-													👥 {song.likedBy?.length || 0} users
-												</span>
-												<span className="text-purple-400 text-xs">
-													▶️ {song.playCount || 0} plays
-												</span>
-											</div>
+											<h3 className="text-white font-medium text-sm truncate">{song.title}</h3>
+											<p className="text-zinc-400 text-xs truncate">{song.artist}</p>
 										</div>
 										<Button
 											variant="destructive"
 											size="sm"
 											onClick={() => deleteSong(song._id)}
+											className="rounded-full bg-red-600/80 hover:bg-red-600 text-white"
 										>
 											<Trash2 className="h-4 w-4" />
 										</Button>
@@ -249,29 +235,25 @@ const AdminPg = () => {
 				{activeTab === "albums" && (
 					<div className="space-y-4">
 						<div className="flex justify-between items-center">
-							<h2 className="text-xl font-bold text-white">Albums Management</h2>
-							<Button className="bg-green-500 hover:bg-green-600 text-black">
-								<Plus className="h-4 w-4 mr-2" />
-								Add Album
-							</Button>
+							<h2 className="text-lg font-bold text-white">Albums Management</h2>
 						</div>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 							{albums.map((album) => (
-								<Card key={album._id} className="bg-zinc-800 border-zinc-700">
+								<Card key={album._id} className="bg-[#181818] border-[#282828] flex flex-col justify-between">
 									<CardContent className="p-4">
 										<img
-											src={album.imageUrl}
+											src={album.imageUrl || '/cover-images/1.jpg'}
 											alt={album.title}
-											className="w-full aspect-square object-cover rounded-md mb-4"
+											className="w-full aspect-square object-cover rounded mb-3 bg-zinc-800"
 										/>
-										<h3 className="text-white font-medium truncate mb-1">{album.title}</h3>
-										<p className="text-zinc-400 text-sm truncate mb-2">{album.artist}</p>
-										<p className="text-zinc-500 text-xs mb-4">{album.releaseYear} • {album.songs?.length || 0} songs</p>
+										<h3 className="text-white font-medium text-sm truncate mb-0.5">{album.title}</h3>
+										<p className="text-zinc-400 text-xs truncate mb-2">{album.artist}</p>
+										<p className="text-zinc-500 text-xs mb-3">{album.releaseYear} • {album.songs?.length || 0} songs</p>
 										<Button
 											variant="destructive"
 											size="sm"
-											className="w-full"
+											className="w-full rounded-full bg-red-600/80 hover:bg-red-600 text-white"
 											onClick={() => deleteAlbum(album._id)}
 										>
 											<Trash2 className="h-4 w-4 mr-2" />
@@ -287,48 +269,28 @@ const AdminPg = () => {
 				{activeTab === "liked" && (
 					<div className="space-y-4">
 						<div className="flex justify-between items-center">
-							<h2 className="text-xl font-bold text-white">Most Liked Songs</h2>
-							<div className="text-green-400 text-sm">
-								Total Likes: {songs.reduce((sum, song) => sum + (song.likes || 0), 0)}
-							</div>
+							<h2 className="text-lg font-bold text-white">Most Liked Songs</h2>
 						</div>
 
 						<div className="space-y-2">
 							{songs
 								.sort((a, b) => (b.likes || 0) - (a.likes || 0))
 								.map((song, index) => (
-								<Card key={song._id} className="bg-zinc-800 border-zinc-700">
-									<CardContent className="flex items-center gap-4 p-4">
+								<Card key={song._id} className="bg-[#181818] border-[#282828]">
+									<CardContent className="flex items-center gap-4 p-3">
 										<div className="flex items-center gap-3">
-											<span className="text-2xl font-bold text-green-400 w-8">
+											<span className="text-sm font-bold text-[#1db954] w-6 text-center">
 												#{index + 1}
 											</span>
 											<img
-												src={song.imageUrl}
+												src={song.imageUrl || '/cover-images/1.jpg'}
 												alt={song.title}
-												className="w-12 h-12 rounded-md object-cover"
+												className="w-10 h-10 rounded object-cover flex-shrink-0 bg-zinc-800"
 											/>
 										</div>
 										<div className="flex-1 min-w-0">
-											<h3 className="text-white font-medium truncate">{song.title}</h3>
-											<p className="text-zinc-400 text-sm truncate">{song.artist}</p>
-											<div className="flex items-center gap-4 mt-1">
-												<span className="text-green-400 text-sm font-semibold">
-													❤️ {song.likes || 0} likes
-												</span>
-												<span className="text-blue-400 text-sm">
-													👥 {song.likedBy?.length || 0} users
-												</span>
-												<span className="text-purple-400 text-sm">
-													▶️ {song.playCount || 0} plays
-												</span>
-											</div>
-										</div>
-										<div className="text-right">
-											<div className="text-green-400 text-lg font-bold">
-												{song.likes || 0}
-											</div>
-											<div className="text-zinc-500 text-xs">likes</div>
+											<h3 className="text-white font-medium text-sm truncate">{song.title}</h3>
+											<p className="text-zinc-400 text-xs truncate">{song.artist}</p>
 										</div>
 									</CardContent>
 								</Card>
