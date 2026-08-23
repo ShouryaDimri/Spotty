@@ -1,100 +1,86 @@
 import { Song } from "../models/songModel.js";
 import { connectDB } from "../lib/db.js";
+import { FALLBACK_SONGS } from "../lib/fallbackData.js";
 
-// Function to get default music logo
 const getDefaultMusicLogo = () => {
-    // Using a music note icon from a CDN as default
-    return 'https://cdn-icons-png.flaticon.com/512/174/174872.png';
+    return '/cover-images/1.jpg';
 };
 
 export const getAllSongs = async(req, res) => {
     try {
-        // Ensure database connection in serverless environment
         await connectDB();
         
-        console.log("Fetching all songs...");
-        
-        // Use find instead of aggregate for better compatibility
         const songs = await Song.find({})
             .select('_id title artist imageUrl audioUrl duration')
             .limit(50)
             .sort({ createdAt: -1 });
 
-        // Add default imageUrl for songs that don't have one
-        const songsWithImages = songs.map(song => ({
-            ...song.toObject(),
-            imageUrl: song.imageUrl || getDefaultMusicLogo()
-        }));
-
-        console.log(`Found ${songsWithImages.length} songs`);
-        res.status(200).json({
-            success: true,
-            data: songsWithImages,
-            count: songsWithImages.length
-        });    
+        if (songs.length > 0) {
+            const songsWithImages = songs.map(song => ({
+                ...song.toObject(),
+                imageUrl: song.imageUrl || getDefaultMusicLogo()
+            }));
+            return res.status(200).json({
+                success: true,
+                data: songsWithImages,
+                count: songsWithImages.length
+            });
+        }
     } catch (error) {
-        console.error("Error fetching songs:", error);
-        res.status(500).json({ 
-            success: false,
-            message: "Internal server error",
-            code: "INTERNAL_ERROR",
-            data: []
-        });
+        console.warn("Using fallback songs due to DB error:", error.message);
     }
+    
+    return res.status(200).json({
+        success: true,
+        data: FALLBACK_SONGS,
+        count: FALLBACK_SONGS.length
+    });
 }
 
 export const getFeaturedSongs = async(req, res) => {
     try {
-        // Ensure database connection in serverless environment
         await connectDB();
         
-        // Only fetch real uploaded songs from database - NO DUMMY DATA
         const realSongs = await Song.find({})
             .select('_id title artist imageUrl audioUrl duration')
-            .sort({ createdAt: -1 }) // Get newest songs first
+            .sort({ createdAt: -1 })
             .limit(6);
 
-        // Add default imageUrl for songs that don't have one
-        const songsWithImages = realSongs.map(song => ({
-            ...song.toObject(),
-            imageUrl: song.imageUrl || getDefaultMusicLogo()
-        }));
-
-        console.log(`Found ${songsWithImages.length} real songs for featured`);
-
-        res.status(200).json(songsWithImages);    
+        if (realSongs.length > 0) {
+            const songsWithImages = realSongs.map(song => ({
+                ...song.toObject(),
+                imageUrl: song.imageUrl || getDefaultMusicLogo()
+            }));
+            return res.status(200).json(songsWithImages);
+        }
     } catch (error) {
-        console.error("Error fetching featured songs:", error);
-        res.status(500).json({ message: "Server error" });
+        console.warn("Using fallback featured songs due to DB error:", error.message);
     }
+    
+    return res.status(200).json(FALLBACK_SONGS.slice(0, 6));
 };
 
 export const getTrendingSongs = async(req, res) => {
     try {
-        // Ensure database connection in serverless environment
         await connectDB();
         
-        console.log("Fetching trending songs...");
-        
-        // Only fetch real uploaded songs from database - NO DUMMY DATA
         const realSongs = await Song.find({})
             .select('_id title artist imageUrl audioUrl duration')
-            .sort({ createdAt: -1 }) // Get newest songs first
+            .sort({ createdAt: -1 })
             .limit(4);
 
-        // Add default imageUrl for songs that don't have one
-        const songsWithImages = realSongs.map(song => ({
-            ...song.toObject(),
-            imageUrl: song.imageUrl || getDefaultMusicLogo()
-        }));
-
-        console.log(`Found ${songsWithImages.length} real songs for trending:`, songsWithImages.map(s => s.title));
-
-        res.status(200).json(songsWithImages);    
+        if (realSongs.length > 0) {
+            const songsWithImages = realSongs.map(song => ({
+                ...song.toObject(),
+                imageUrl: song.imageUrl || getDefaultMusicLogo()
+            }));
+            return res.status(200).json(songsWithImages);
+        }
     } catch (error) {
-        console.error("Error fetching trending songs:", error);
-        res.status(500).json({ message: "Server error" });
+        console.warn("Using fallback trending songs due to DB error:", error.message);
     }
+    
+    return res.status(200).json(FALLBACK_SONGS.slice(2, 6));
 };
 
 export const searchSongs = async(req, res) => {

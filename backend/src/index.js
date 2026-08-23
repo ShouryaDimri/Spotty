@@ -23,12 +23,13 @@ import messageRoutes from './routes/messageRoutes.js';
 import healthRoutes from './routes/healthRoutes.js';
 import userStatusRoutes from './routes/userStatusRoutes.js';
 
-// to load environment variables from a .env file
-dotenv.config();                               
+// Load environment variables from .env files
+const __dirname = path.resolve();
+dotenv.config();
+dotenv.config({ path: path.join(__dirname, 'backend', '.env') });
 
 const app = express();   //creates an Express application instance.
 const PORT = process.env.PORT || 5137;  //server will listen on this port
-const __dirname = path.resolve();  // Get current directory path
 
 // Frontend URL for CORS - support both local and production
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";  // Default to localhost in development
@@ -100,26 +101,18 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// Database connection middleware - ensure DB connection for every request
+// Database connection middleware
 app.use(async (req, res, next) => {
-  try {
-    if (!process.env.MONGODB_URI) {
-      console.error('❌ MONGODB_URI is not defined in environment variables');
-      return res.status(500).json({
-        success: false,
-        message: 'Database configuration missing. Please set MONGODB_URI in Vercel environment variables.'
-      });
+  if (process.env.MONGODB_URI) {
+    try {
+      await connectDB();
+    } catch (error) {
+      console.warn('⚠️ Database connection warning:', error.message);
     }
-    await connectDB();
-    next();
-  } catch (error) {
-    console.error('❌ Database connection error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Database connection failed',
-      error: error.message
-    });
+  } else {
+    console.warn('⚠️ MONGODB_URI is not set. Operating with fallback data mode.');
   }
+  next();
 });
 
 app.use("/api/users", userRoutes); // User management routes
@@ -178,6 +171,8 @@ app.use((req, res) => {
 });
 
 // Create handler for Vercel serverless functions
+const handler = app;
+
 if (!isServerless) {
   connectDB().then(() => {
     httpServer.listen(PORT, () => {

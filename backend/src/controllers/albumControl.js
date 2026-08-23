@@ -1,65 +1,62 @@
-import {Album} from "../models/albumModel.js";
+import { Album } from "../models/albumModel.js";
 import { connectDB } from "../lib/db.js";
+import { FALLBACK_ALBUMS } from "../lib/fallbackData.js";
 
 export const getAlbums = async(req, res) => {
     try {
-        // Ensure database connection in serverless environment
         await connectDB();
-        
         const albums = await Album.find();
-        res.status(200).json(albums);    
+        if (albums.length > 0) {
+            return res.status(200).json(albums);
+        }
     } catch (error) {
-        console.error("Error fetching albums:", error);
-        res.status(500).json({ message: "Server error" });
+        console.warn("Using fallback albums due to DB error:", error.message);
     }
+    return res.status(200).json(FALLBACK_ALBUMS);
 };
 
 export const getAllAlbums = async(req, res) => {
     try {
-        // Ensure database connection in serverless environment
         await connectDB();
-        
-        console.log("Fetching all albums...");
         
         const albums = await Album.find({})
             .select('_id title artist imageUrl releaseYear songs')
             .limit(50)
             .sort({ createdAt: -1 });
 
-        console.log(`Found ${albums.length} albums`);
-        res.status(200).json({
-            success: true,
-            data: albums,
-            count: albums.length
-        });    
+        if (albums.length > 0) {
+            return res.status(200).json({
+                success: true,
+                data: albums,
+                count: albums.length
+            });
+        }
     } catch (error) {
-        console.error("Error fetching all albums:", error);
-        res.status(500).json({ 
-            success: false,
-            message: "Internal server error",
-            code: "INTERNAL_ERROR",
-            data: []
-        });
+        console.warn("Using fallback all albums due to DB error:", error.message);
     }
+    
+    return res.status(200).json({
+        success: true,
+        data: FALLBACK_ALBUMS,
+        count: FALLBACK_ALBUMS.length
+    });
 };
 
 export const getAlbumById = async(req, res) => {
     try {
-        // Ensure database connection in serverless environment
         await connectDB();
         
         const { albumId } = req.params;
         const album = await Album.findById(albumId).populate('songs');
-        if (!album) {
-            return res.status(404).json({ message: "Album not found" });
+        if (album) {
+            return res.status(200).json(album);
         }
-        res.status(200).json(album);
-
     } catch (error) {
-        console.error("Error fetching album by ID:", error);
-        res.status(500).json({ message: "Server error" });
+        console.warn("Error fetching album by ID:", error.message);
     }
-
+    
+    const fallback = FALLBACK_ALBUMS.find(a => a._id === req.params.albumId) || FALLBACK_ALBUMS[0];
+    return res.status(200).json(fallback);
 };
 
 export const searchAlbums = async(req, res) => {
