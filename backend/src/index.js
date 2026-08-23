@@ -51,11 +51,21 @@ if (isServerless) {
   });
 }
 
-// Configure CORS
+// Configure CORS - explicitly support production domains
+const ALLOWED_ORIGINS = [
+  "https://spotty-kohl.vercel.app",
+  "https://spotty-git-master-shouryadimris-projects.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000"
+];
+
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow all requests in serverless or development
-    if (!origin || isServerless || origin.includes('vercel.app') || origin.includes('localhost')) {
+    // Allow server-to-server or requests with no origin
+    if (!origin) return callback(null, true);
+    
+    // Allow all vercel.app preview and production subdomains
+    if (origin.includes('vercel.app') || origin.includes('localhost') || ALLOWED_ORIGINS.includes(origin)) {
       return callback(null, true);
     }
     return callback(null, true);
