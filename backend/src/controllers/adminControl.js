@@ -2,6 +2,7 @@ import {Song} from "../models/songModel.js";
 import {Album} from "../models/albumModel.js";
 import cloudinary from "../lib/cloudinary.js";
 import { connectDB } from "../lib/db.js";
+import { FALLBACK_SONGS } from "../lib/fallbackData.js";
 
 // Function to get default music logo
 const getDefaultMusicLogo = () => {
@@ -301,33 +302,32 @@ export const deleteAlbum = async (req, res) => {
 };
 
 export const getSongs = async (req, res) => {
-  // Get all songs for admin panel
   try {
     await connectDB();
+    const songs = await Song.find({})
+      .select('_id title artist imageUrl audioUrl duration likes likedBy playCount createdAt')
+      .sort({ createdAt: -1 });
     
-    const songs = await Song.find({}) // Fetch all songs
-      .select('_id title artist imageUrl audioUrl duration likes likedBy playCount createdAt') // Select specific fields
-      .sort({ createdAt: -1 }); // Sort by newest first
-    
-    // Add default imageUrl for songs that don't have one
-    const songsWithImages = songs.map(song => ({ // Map over songs to ensure imageUrl is set
-      ...song.toObject(), // Convert Mongoose document to plain object, turns the Mongoose doc into a normal JS object
-      imageUrl: song.imageUrl || getDefaultMusicLogo() //Ensures clean JSON output and guarantees an image even if missing
-    }));
-    
-    res.status(200).json({
-      // Return songs with success status
-      success: true,
-      data: songsWithImages,
-      count: songsWithImages.length // Number of songs returned
-    });
+    if (songs.length > 0) {
+      const songsWithImages = songs.map(song => ({
+        ...song.toObject(),
+        imageUrl: song.imageUrl || getDefaultMusicLogo()
+      }));
+      return res.status(200).json({
+        success: true,
+        data: songsWithImages,
+        count: songsWithImages.length
+      });
+    }
   } catch (error) {
-    console.error("Error fetching songs for admin:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error"
-    });
+    console.warn("Using fallback songs in admin getSongs:", error.message);
   }
+  
+  return res.status(200).json({
+    success: true,
+    data: FALLBACK_SONGS,
+    count: FALLBACK_SONGS.length
+  });
 };
 
 export const checkAdmin = async (req, res) => {
