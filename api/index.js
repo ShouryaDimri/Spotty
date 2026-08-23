@@ -1,8 +1,5 @@
-// Vercel Serverless Function Handler
-export default async function handler(req, res) {
-  // Dynamic import to support ES Modules in serverless environment
-  const { default: app } = await import('../backend/src/index.js');
-  
-  // Return the Express app handler
+import app from '../backend/src/index.js';
+
+export default function handler(req, res) {
   return app(req, res);
 }
