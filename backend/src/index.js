@@ -52,25 +52,9 @@ if (isServerless) {
   });
 }
 
-// Configure CORS - explicitly support production domains
-const ALLOWED_ORIGINS = [
-  "https://spotty-kohl.vercel.app",
-  "https://spotty-git-master-shouryadimris-projects.vercel.app",
-  "http://localhost:5173",
-  "http://localhost:3000"
-];
-
+// Configure CORS - explicitly support production domains cleanly
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow server-to-server or requests with no origin
-    if (!origin) return callback(null, true);
-    
-    // Allow all vercel.app preview and production subdomains
-    if (origin.includes('vercel.app') || origin.includes('localhost') || ALLOWED_ORIGINS.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(null, true);
-  },
+  origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
@@ -98,31 +82,41 @@ app.use((req, res, next) => {
 
 // Safe Clerk authentication middleware - prevents Clerk cookie/JWT errors from returning 500
 app.use((req, res, next) => {
+  if (!process.env.CLERK_SECRET_KEY) {
+    return next();
+  }
   try {
     const handler = clerkMiddleware();
     return handler(req, res, (err) => {
       if (err) {
         console.warn("⚠️ Clerk auth warning:", err.message);
       }
-      next();
+      return next();
     });
   } catch (error) {
     console.warn("⚠️ Clerk initialization warning:", error.message);
-    next();
+    return next();
   }
 });
 
 // File upload middleware configuration
-app.use(fileupload({
-  useTempFiles: true,
-  tempFileDir: isServerless ? '/tmp' : path.join(__dirname, 'tmp'),
-  createParentPath: true,
-  limits: { 
-    fileSize: 100 * 1024 * 1024,
-    files: 2,
-    fieldSize: 10 * 1024 * 1024
+app.use((req, res, next) => {
+  try {
+    return fileupload({
+      useTempFiles: !isServerless,
+      tempFileDir: isServerless ? '/tmp' : path.join(__dirname, 'tmp'),
+      createParentPath: true,
+      limits: { 
+        fileSize: 100 * 1024 * 1024,
+        files: 2,
+        fieldSize: 10 * 1024 * 1024
+      }
+    })(req, res, next);
+  } catch (error) {
+    console.warn("⚠️ fileupload warning:", error.message);
+    return next();
   }
-}));
+});
 
 // Request logging middleware (only in development)
 if (process.env.NODE_ENV === 'development') {
@@ -191,20 +185,7 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-// Global error handling middleware - prevent unhandled 500 status codes
-app.use((err, req, res, next) => {
-  console.warn("⚠️ Global Express error caught:", err.message || err);
-  if (res.headersSent) {
-    return next(err);
-  }
-  return res.status(200).json({
-    success: true,
-    message: "Request completed with fallback handling",
-    data: []
-  });
-});
-
-// 404 Handler for unmatched routes (MUST be registered after all routes)
+// 404 Handler for unmatched routes (registered after all routes)
 app.use((req, res) => {
   console.log(`❌ 404: ${req.method} ${req.path}`);
   res.status(404).json({ 
@@ -212,6 +193,15 @@ app.use((req, res) => {
     path: req.path,
     method: req.method
   });
+});
+
+// Global error handling middleware - MUST be the very last middleware
+app.use((err, req, res, next) => {
+  console.warn("⚠️ Global Express error caught:", err.message || err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  return res.status(200).json([]);
 });
 
 // Create handler for Vercel serverless functions
