@@ -79,6 +79,23 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+// Cookie parser middleware to extract Clerk authentication cookies (__session, __clerk_db_jwt)
+app.use((req, res, next) => {
+  const cookieHeader = req.headers.cookie;
+  req.cookies = req.cookies || {};
+  if (cookieHeader) {
+    cookieHeader.split(';').forEach(cookie => {
+      const parts = cookie.split('=');
+      if (parts.length >= 2) {
+        const key = parts[0].trim();
+        const value = parts.slice(1).join('=').trim();
+        req.cookies[key] = decodeURIComponent(value);
+      }
+    });
+  }
+  next();
+});
+
 // Safe Clerk authentication middleware - prevents Clerk cookie/JWT errors from returning 500
 app.use((req, res, next) => {
   try {

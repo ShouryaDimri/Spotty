@@ -13,13 +13,24 @@ declare global {
 }
 
 // Use VITE_API_BASE_URL if set, otherwise default based on environment
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-  (import.meta.env.MODE === 'production' ? "/api" : "http://localhost:5137/api");
+const getApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  if (import.meta.env.MODE === 'production' || import.meta.env.PROD) {
+    if (!envUrl || envUrl.includes('localhost')) {
+      return "/api";
+    }
+    return envUrl;
+  }
+  return envUrl || "http://localhost:5137/api";
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 
 export const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 10000, // 10 seconds timeout
+    timeout: 10000,
+    withCredentials: true, // Send Clerk cookies with all requests
 });
 
 // Add request interceptor for debugging

@@ -76,11 +76,23 @@ const ChatPg = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openMenuId]);
 
+  const getSocketUrl = () => {
+    if (import.meta.env.VITE_SOCKET_URL) return import.meta.env.VITE_SOCKET_URL;
+    const apiBase = import.meta.env.VITE_API_BASE_URL;
+    if (apiBase && !apiBase.includes('localhost') && !apiBase.startsWith('/')) {
+      return apiBase.replace(/\/api\/?$/, '');
+    }
+    if (import.meta.env.DEV) {
+      return "http://localhost:5137";
+    }
+    return null;
+  };
+
   // Socket initialization
   useEffect(() => {
-    if (import.meta.env.DEV) {
-      const SOCKET_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || "http://localhost:5137";
-      const newSocket = io(SOCKET_URL);
+    const socketUrl = getSocketUrl();
+    if (socketUrl) {
+      const newSocket = io(socketUrl);
       setSocket(newSocket);
 
       if (user?.id) {
@@ -117,7 +129,9 @@ const ChatPg = () => {
         });
       });
 
-      return () => newSocket.close();
+      return () => {
+        newSocket.close();
+      };
     } else {
       const pollInterval = setInterval(() => {
         if (selectedUser) {

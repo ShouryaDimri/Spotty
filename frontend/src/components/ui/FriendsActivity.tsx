@@ -33,11 +33,22 @@ const FriendsActivity = () => {
   const [, setSocket] = useState<Socket | null>(null);
   const [hoveredUserId, setHoveredUserId] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Only initialize socket in development (Socket.io not available in Vercel serverless)
+  const getSocketUrl = () => {
+    if (import.meta.env.VITE_SOCKET_URL) return import.meta.env.VITE_SOCKET_URL;
+    const apiBase = import.meta.env.VITE_API_BASE_URL;
+    if (apiBase && !apiBase.includes('localhost') && !apiBase.startsWith('/')) {
+      return apiBase.replace(/\/api\/?$/, '');
+    }
     if (import.meta.env.DEV) {
-      const SOCKET_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || "http://localhost:5137";
-      const newSocket = io(SOCKET_URL);
+      return "http://localhost:5137";
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    const socketUrl = getSocketUrl();
+    if (socketUrl) {
+      const newSocket = io(socketUrl);
       setSocket(newSocket);
 
       if (user?.id) {
@@ -117,7 +128,7 @@ const FriendsActivity = () => {
         newSocket.close();
       };
     } else {
-      // In production, use periodic status check
+      // In production without socket server, use periodic status check
       const pollInterval = setInterval(() => {
         fetchOnlineUsers();
       }, 15000); // Poll every 15 seconds
