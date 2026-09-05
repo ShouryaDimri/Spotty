@@ -4,8 +4,20 @@
   "description": "A full-stack music streaming application built with modern web technologies, featuring real-time chat, admin dashboard, and comprehensive music management.",
   "main": "comprehensive-360-check.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm install --prefix backend && npm run build --prefix frontend"
   },
   "keywords": [],
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@clerk/express": "^1.7.24",
+    "@vercel/node": "^3.2.29",
+    "cloudinary": "^2.7.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "express-fileupload": "^1.5.2",
+    "mongoose": "^8.18.0",
+    "socket.io": "^4.8.1"
+  }
 }
